@@ -3,10 +3,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,27 +17,34 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Properties;
+
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.border.LineBorder;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /*
  *  What to do
+ *  Get night pictures for weather conditions
+ *  Get more weather condition pictures
  *  Get the Days info straight
  *  Set up the location
  *  // Later
- *  Set up the interface based on the weather condition right now
  *  Fix the interface for the weather for the hours and then for the days
  *  Fix the system for searching for the location and displaying stuff
  *  Fix the UI overall
@@ -65,6 +75,10 @@ public class Weather {
     double[] dayTempMins = new double[6];
     //Variables for hour prediction
     int[] hourTemps = new int[14];
+    int[] rainPercents = new int[14];
+    int[] uvIndexes = new int[14];
+    int[] humidityValues = new int[14];
+    int[] windSpeeds = new int[14];
     //Set up the time
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss, yyyy-MM-dd");
 
@@ -185,14 +199,29 @@ public class Weather {
         hourPredictionPanel.setBackground(Color.LIGHT_GRAY);
     
         for (int i = 0; i < hourTemps.length; i++) {
-            String str = (hourNow + (i + 1))%24+ ":00 \n" + hourTemps[i] + "°C";
-            JTextArea hour = new JTextArea(str);
-            hour.setBackground(Color.CYAN);
+            // Set up and customize the textPane 
+            String str = "\n"+ (hourNow + (i + 1)) % 24 + ":00 \n" + hourTemps[i] + "°C";
+            JTextPane hour = new JTextPane();
+            hour.setText(str);
             hour.setBorder(new LineBorder(backgroundColor));
             hour.setEditable(false);
             hour.setFocusable(false);
-            hourPredictionPanel.add(hour);
+            hour.setFont(new Font("Arial", Font.BOLD, 16));
+
+            // Set text alignment to center
+            Style style = hour.getStyle(StyleContext.DEFAULT_STYLE);
+            StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
+            hour.setParagraphAttributes(style, true);
+
+            // Set the background based on rain percentage
+            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i]);
+            JPanel backgroundPanel = createBackgroundPanel(hour, imagePath);
+
+            // Add the panel to the hourPredictionPanel
+            hourPredictionPanel.add(backgroundPanel);
         }
+
+        
         
         // Add hourPredictionPanel to the left panel
         left.add(hourPredictionPanel, BorderLayout.CENTER);
@@ -269,6 +298,71 @@ public class Weather {
         infogridPanel.add(dayOrNight);
         infogridPanel.add(sunsetOrSunrise);
         topRightPanel.add(infogridPanel);
+    }
+    // Method to decide the path of the background image based on the data
+    public String decidePath(int rainPercentage, int temp, int uvIndex, int humidity, int windspeed) {
+        // If there's rain, show rainy background
+        if (rainPercentage > 0) {
+            return "testImages/rainy.png";
+        }
+
+        // If temperature is below 0°C, show snowy background
+        if (temp < 0) {
+            return "testImages/snowy.png";
+        }
+
+        // If no rain, low UV, high humidity => Cloudy background
+        if (rainPercentage == 0 && uvIndex < 5 && humidity > 50) {
+            return "testImages/cloudy.png";
+        }
+
+        // If no rain, low UV, low humidity => Windy background
+        if (rainPercentage == 0 && uvIndex < 5 && humidity < 50) {
+            return "testImages/windy.png";
+        }
+
+        // If rain percentage is 0 and windspeed is high (possible storm)
+        if (rainPercentage == 0 && windspeed > 24.5) {
+            return "testImages/stormy.png";  // Adjust the image path if necessary
+        }
+
+        // If rain percentage is 0, low UV, and moderate windspeed => Windy background
+        if (rainPercentage == 0 && uvIndex < 5 && windspeed > 5 && windspeed < 24.5) {
+            return "testImages/windy.png";
+        }
+
+        // Default: If nothing matches, assume sunny weather
+        return "testImages/sunny.png";
+    }
+
+    // Method to set the background of the text area
+    public static JPanel createBackgroundPanel(JComponent component, String imagePath) {
+        // Load the background image
+        BufferedImage bgImage;
+        try {
+            bgImage = ImageIO.read(new File(imagePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new JPanel(); // Return a plain panel if the image fails to load
+        }
+    
+        // Create a custom panel with the background
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (bgImage != null) {
+                    g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+        backgroundPanel.setLayout(new BorderLayout());
+    
+        // Add the component to the panel and make it transparent
+        component.setOpaque(false);
+        backgroundPanel.add(component, BorderLayout.CENTER);
+    
+        return backgroundPanel; // Return the panel with the component and background
     }
 
     //Method to customize and add components for the bottom panel
@@ -368,6 +462,30 @@ public class Weather {
         for (int i = 0; i < hourTemps.length; i++) { 
             double temp = temperatureArr.getDouble(i);
             hourTemps[i] = (int) temp;
+        }
+        // Rain percentage for hours
+        JSONArray rainPercentageArr = hourlyData.getJSONArray("precipitation");
+        for (int i = 0; i < rainPercents.length; i++) { 
+            double rainPercentage = rainPercentageArr.getDouble(i);
+            rainPercents[i] = (int) rainPercentage;
+        }
+        // UV index for hours
+        JSONArray uvIndexArr = hourlyData.getJSONArray("uv_index");
+        for (int i = 0; i < uvIndexes.length; i++) { 
+            double uvIndex = uvIndexArr.getDouble(i);
+            uvIndexes[i] = (int) uvIndex;
+        }
+        // Humidity for hours
+        JSONArray humidityArr = hourlyData.getJSONArray("relative_humidity_2m");
+        for (int i = 0; i < humidityValues.length; i++) { 
+            double humidity = humidityArr.getDouble(i);
+            humidityValues[i] = (int) humidity;
+        }
+        // Wind speed for hours
+        JSONArray windSpeedArr = hourlyData.getJSONArray("windspeed_10m");
+        for (int i = 0; i < windSpeeds.length; i++) { 
+            double windSpeed = windSpeedArr.getDouble(i);
+            windSpeeds[i] = (int) windSpeed;
         }
         // UV index for the first hour
         JSONArray uvIndexArray = hourlyData.getJSONArray("uv_index");
