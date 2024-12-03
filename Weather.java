@@ -1,12 +1,12 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,9 +17,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Properties;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -31,7 +31,6 @@ import javax.swing.border.LineBorder;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -40,12 +39,12 @@ import org.json.JSONObject;
 
 /*
  *  What to do
- *  Get night pictures for weather conditions
  *  Get more weather condition pictures
  *  Get the Days info straight
  *  Set up the location
+ *  Take more pictures that will be used to show the state of the weather right now
  *  // Later
- *  Fix the interface for the weather for the hours and then for the days
+ *  Fix the interface for the days
  *  Fix the system for searching for the location and displaying stuff
  *  Fix the UI overall
  */
@@ -63,7 +62,8 @@ public class Weather {
     double windSpeed;
     String windDirectionString;
     int isDay;
-    String sunsetOrSunriseValue;
+    String sunsetValue;
+    String sunriseValue;
     double rainMiliValue;
     double visibilityValue;
     double humidityValue;
@@ -83,7 +83,6 @@ public class Weather {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss, yyyy-MM-dd");
 
     //Variable declaration
-    //Use gnome-characters command in the terminal for emojis
     JPanel topPanel = new JPanel();
     JPanel searchBarPanel = new JPanel();
     JPanel centerPanel = new JPanel();
@@ -200,13 +199,17 @@ public class Weather {
     
         for (int i = 0; i < hourTemps.length; i++) {
             // Set up and customize the textPane 
-            String str = "\n"+ (hourNow + (i + 1)) % 24 + ":00 \n" + hourTemps[i] + "°C";
+            int hourTime = (hourNow + (i + 1)) % 24;
+            String str = "\n"+ hourTime + ":00 \n" + hourTemps[i] + "°C";
             JTextPane hour = new JTextPane();
             hour.setText(str);
             hour.setBorder(new LineBorder(backgroundColor));
             hour.setEditable(false);
             hour.setFocusable(false);
-            hour.setFont(new Font("Arial", Font.BOLD, 16));
+            hour.setFont(new Font("Arial", Font.BOLD, 18));
+            if(isDay != 1){
+                hour.setForeground(Color.magenta);
+            }
 
             // Set text alignment to center
             Style style = hour.getStyle(StyleContext.DEFAULT_STYLE);
@@ -214,15 +217,13 @@ public class Weather {
             hour.setParagraphAttributes(style, true);
 
             // Set the background based on rain percentage
-            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i]);
+            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], hourTime, false);
             JPanel backgroundPanel = createBackgroundPanel(hour, imagePath);
 
             // Add the panel to the hourPredictionPanel
             hourPredictionPanel.add(backgroundPanel);
         }
 
-        
-        
         // Add hourPredictionPanel to the left panel
         left.add(hourPredictionPanel, BorderLayout.CENTER);
     
@@ -255,20 +256,37 @@ public class Weather {
         }
         bottomRightPanel.add(dayPrediction);
         // Panel for the weather basic info
-        JPanel todaysWeatherPanel = new JPanel();
-        todaysWeatherPanel.setLayout(new GridLayout(4, 1));
+        
+        String imgPath = decidePath((int) rainPercentageValue, (int) tempNow, (int) uvIndexNow, (int) humidityValue, (int) windSpeed, hourNow, true);
+
+        JPanel todaysWeatherPanel = setBackgroundForIndicatorArea(imgPath);
+        todaysWeatherPanel.setLayout(new GridLayout(3, 1));
         JTextField locationField = new JTextField("Location: " + location);
-        JTextArea indicatorTextArea = new JTextArea("Indicate");
         JTextField highLowTextField = new JTextField("highest: " + tempMax + "°C lowest: " + tempMin + "°C");
         JTextField temperatureNow = new JTextField("Temperature is " + tempNow + "°C");
+
+        // Set the textfields background to invisible to be able to see the current weather state
+        locationField.setOpaque(false); 
+        highLowTextField.setOpaque(false);
+        temperatureNow.setOpaque(false);
+
+        locationField.setBackground(new Color(0, 0, 0, 0));
+        highLowTextField.setBackground(new Color(0, 0, 0, 0));
+        temperatureNow.setBackground(new Color(0, 0, 0, 0));
+
+        locationField.setBorder(null); 
+        highLowTextField.setBorder(null);
+        temperatureNow.setBorder(null);
+
+        locationField.setFont(new Font("Arial", Font.BOLD, 17));
+        highLowTextField.setFont(new Font("Arial", Font.BOLD, 17));
+        temperatureNow.setFont(new Font("Arial", Font.BOLD, 17));
         // Costumize the components
         customizefields(locationField);
-        customizeareas(indicatorTextArea);
         customizefields(highLowTextField);
         customizefields(temperatureNow);
         // Add everything together
         todaysWeatherPanel.add(locationField);
-        todaysWeatherPanel.add(indicatorTextArea);
         todaysWeatherPanel.add(highLowTextField);
         todaysWeatherPanel.add(temperatureNow);
         topRightPanel.add(todaysWeatherPanel);
@@ -281,7 +299,7 @@ public class Weather {
         JTextField windDirection = new JTextField("Wind Direction: " + getWindDirection(windDirectionString));
         String isDayOrNight = isDay == 1 ? "Day" : "Night";
         JTextField dayOrNight = new JTextField(isDayOrNight);
-        String sunsetOrSunriseText = sunsetOrSunriseValue;
+        String sunsetOrSunriseText = isDay == 1 ? sunsetValue : sunriseValue;
         JTextField sunsetOrSunrise = new JTextField(sunsetOrSunriseText);
         // Costumize the textfields
         customizefields(rainPercentage);
@@ -299,40 +317,77 @@ public class Weather {
         infogridPanel.add(sunsetOrSunrise);
         topRightPanel.add(infogridPanel);
     }
+
+    public JPanel setBackgroundForIndicatorArea(String imgPath) {
+        // Create a new JPanel
+        JPanel panelWithBackground = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // Load the image from the given path
+                ImageIcon icon = new ImageIcon(imgPath);
+                Image image = icon.getImage();
+                // Draw the image to cover the entire panel
+                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+    
+        // Ensure the panel is transparent if needed
+        panelWithBackground.setOpaque(false);
+    
+        // Optionally set a layout for the panel (if you'll add components)
+        panelWithBackground.setLayout(new BorderLayout());
+    
+        // Return the JPanel with the background image
+        return panelWithBackground;
+    }
+    
+
     // Method to decide the path of the background image based on the data
-    public String decidePath(int rainPercentage, int temp, int uvIndex, int humidity, int windspeed) {
+    public String decidePath(int rainPercentage, int temp, int uvIndex, int humidity, int windspeed, int time, boolean weatherNow) {
         // If there's rain, show rainy background
+        
         if (rainPercentage > 0) {
-            return "testImages/rainy.png";
+            if(isDay == 1){
+                return "testImages/rainy.png";
+            }
+            else{
+                return "testImages/rainyNight.jpeg";
+            }
         }
 
         // If temperature is below 0°C, show snowy background
         if (temp < 0) {
-            return "testImages/snowy.png";
+            if (isDay == 1) {
+                return "testImages/snowy.png";
+            }else{
+                return "testImages/snowyNight.jpeg";
+            }
         }
 
         // If no rain, low UV, high humidity => Cloudy background
         if (rainPercentage == 0 && uvIndex < 5 && humidity > 50) {
-            return "testImages/cloudy.png";
-        }
-
-        // If no rain, low UV, low humidity => Windy background
-        if (rainPercentage == 0 && uvIndex < 5 && humidity < 50) {
-            return "testImages/windy.png";
+            if (isDay == 1) {
+                return "testImages/cloudy.png";
+            }else{
+                return "testImages\\cloudyNight.jpeg";
+            }
         }
 
         // If rain percentage is 0 and windspeed is high (possible storm)
         if (rainPercentage == 0 && windspeed > 24.5) {
+            //Get storm night
             return "testImages/stormy.png";  // Adjust the image path if necessary
         }
 
         // If rain percentage is 0, low UV, and moderate windspeed => Windy background
         if (rainPercentage == 0 && uvIndex < 5 && windspeed > 5 && windspeed < 24.5) {
+            //Get windy night
             return "testImages/windy.png";
         }
 
         // Default: If nothing matches, assume sunny weather
-        return "testImages/sunny.png";
+        return isDay == 1 ? "testImages/sunny.png" : "testImages/clearNight.jpeg";
     }
 
     // Method to set the background of the text area
@@ -408,17 +463,7 @@ public class Weather {
         field.setFocusable(false);
     }
 
-    // Method to customize text areas
-    public void customizeareas(JTextArea area){
-        area.setBackground(backgroundColor);
-        area.setForeground(foregroundColor);
-        area.setBorder(new LineBorder(backgroundColor));
-        area.setEditable(false);
-        area.setFocusable(false);
-        area.setAlignmentX(Component.CENTER_ALIGNMENT);
-        area.setAlignmentY(Component.CENTER_ALIGNMENT);
-        //Add logic to it
-    }
+    
     // Method to put the api's to work
     public void apiWork() throws Exception{
         loadCurrentLocation();
@@ -506,8 +551,8 @@ public class Weather {
         String sunset = "sunset: " + formatTime(sunsetArray.getString(0));
         String sunrise = "sunrise: " + formatTime(sunriseArray.getString(0));
 
-        // Assign based on whether it's day or night
-        sunsetOrSunriseValue = isDay == 1 ? sunset : sunrise;
+        sunsetValue = sunset;
+        sunriseValue = sunrise;
 
         // Temperature at 2m for the first hour
         JSONArray tempMaxArray = dailyData.getJSONArray("temperature_2m_max");
@@ -583,7 +628,7 @@ public class Weather {
             LocalDateTime dateTime = LocalDateTime.parse(time);
             
             // Formatting it
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
             
             // Return the formatted time
             return dateTime.format(formatter);
