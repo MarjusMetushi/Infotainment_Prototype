@@ -32,6 +32,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import org.json.JSONArray;
@@ -40,7 +41,6 @@ import org.json.JSONObject;
 /*
  *  What to do
  *  Get more weather condition pictures
- *  Get the Days info straight
  *  Set up the location
  *  Take more pictures that will be used to show the state of the weather right now
  *  // Later
@@ -61,9 +61,11 @@ public class Weather {
     double tempNow;
     double windSpeed;
     String windDirectionString;
+    int theHourOfSunrise;
+    int theHourOfSunset;
     int isDay;
     String sunsetValue;
-    String sunriseValue;
+    String sunriseValue ;
     double rainMiliValue;
     double visibilityValue;
     double humidityValue;
@@ -73,6 +75,8 @@ public class Weather {
     //Variables for day prediction
     double[] dayTempMaxes = new double[6];
     double[] dayTempMins = new double[6];
+    double[] dayRainPercentages = new double[6];
+    double[] dayUVIndexes = new double[6];
     //Variables for hour prediction
     int[] hourTemps = new int[14];
     int[] rainPercents = new int[14];
@@ -207,8 +211,14 @@ public class Weather {
             hour.setEditable(false);
             hour.setFocusable(false);
             hour.setFont(new Font("Arial", Font.BOLD, 18));
-            if(isDay != 1){
+            boolean isDayOrNight;
+            if(hourTime < theHourOfSunrise || hourTime > theHourOfSunset){
+                isDayOrNight = false;
                 hour.setForeground(Color.magenta);
+            }
+            else{
+                isDayOrNight = true;
+                hour.setForeground(Color.black);
             }
 
             // Set text alignment to center
@@ -217,7 +227,7 @@ public class Weather {
             hour.setParagraphAttributes(style, true);
 
             // Set the background based on rain percentage
-            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], hourTime, false);
+            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], hourTime, isDayOrNight, false);
             JPanel backgroundPanel = createBackgroundPanel(hour, imagePath);
 
             // Add the panel to the hourPredictionPanel
@@ -243,9 +253,11 @@ public class Weather {
         //The day prediction panel
         JPanel dayPrediction = new JPanel();
         dayPrediction.setLayout(new GridLayout(1, 10));
-        for(int i = 1; i <= 7; i++){
-            String str = "Day" + i + "\n" + "Temperature 13 deg";
-            JTextArea dayTextArea = new JTextArea(str);
+        for(int i = 0; i < dayTempMaxes.length; i++){
+            String Tempstr = "High: " + dayTempMaxes[i] + "°C\nLow: " + dayTempMins[i] + "°C";
+            String Rainstr = "Rain: " + dayRainPercentages[i] + "%";
+            String UVstr = "UV: " + dayUVIndexes[i];
+            JTextArea dayTextArea = new JTextArea(Tempstr + "\n" + Rainstr + "\n" + UVstr);
             dayTextArea.setBackground(backgroundColor);
             dayTextArea.setForeground(foregroundColor);
             dayTextArea.setBorder(new LineBorder(buttonBorderColor));
@@ -257,7 +269,7 @@ public class Weather {
         bottomRightPanel.add(dayPrediction);
         // Panel for the weather basic info
         
-        String imgPath = decidePath((int) rainPercentageValue, (int) tempNow, (int) uvIndexNow, (int) humidityValue, (int) windSpeed, hourNow, true);
+        String imgPath = decidePath((int) rainPercentageValue, (int) tempNow, (int) uvIndexNow, (int) humidityValue, (int) windSpeed, hourNow, isDay == 1 ? true : false, true);
 
         JPanel todaysWeatherPanel = setBackgroundForIndicatorArea(imgPath);
         todaysWeatherPanel.setLayout(new GridLayout(3, 1));
@@ -299,7 +311,7 @@ public class Weather {
         JTextField windDirection = new JTextField("Wind Direction: " + getWindDirection(windDirectionString));
         String isDayOrNight = isDay == 1 ? "Day" : "Night";
         JTextField dayOrNight = new JTextField(isDayOrNight);
-        String sunsetOrSunriseText = isDay == 1 ? sunsetValue : sunriseValue;
+        String sunsetOrSunriseText = isDay == 1 ? "Sunset "+sunsetValue : "Sunrise "+sunriseValue;
         JTextField sunsetOrSunrise = new JTextField(sunsetOrSunriseText);
         // Costumize the textfields
         customizefields(rainPercentage);
@@ -344,11 +356,11 @@ public class Weather {
     
 
     // Method to decide the path of the background image based on the data
-    public String decidePath(int rainPercentage, int temp, int uvIndex, int humidity, int windspeed, int time, boolean weatherNow) {
+    public String decidePath(int rainPercentage, int temp, int uvIndex, int humidity, int windspeed, int time, boolean isDay, boolean weatherNow) {
         // If there's rain, show rainy background
         
         if (rainPercentage > 0) {
-            if(isDay == 1){
+            if(isDay){
                 return "testImages/rainy.png";
             }
             else{
@@ -358,7 +370,7 @@ public class Weather {
 
         // If temperature is below 0°C, show snowy background
         if (temp < 0) {
-            if (isDay == 1) {
+            if (isDay) {
                 return "testImages/snowy.png";
             }else{
                 return "testImages/snowyNight.jpeg";
@@ -367,7 +379,7 @@ public class Weather {
 
         // If no rain, low UV, high humidity => Cloudy background
         if (rainPercentage == 0 && uvIndex < 5 && humidity > 50) {
-            if (isDay == 1) {
+            if (isDay) {
                 return "testImages/cloudy.png";
             }else{
                 return "testImages\\cloudyNight.jpeg";
@@ -387,7 +399,7 @@ public class Weather {
         }
 
         // Default: If nothing matches, assume sunny weather
-        return isDay == 1 ? "testImages/sunny.png" : "testImages/clearNight.jpeg";
+        return isDay ? "testImages/sunny.png" : "testImages/clearNight.jpeg";
     }
 
     // Method to set the background of the text area
@@ -476,6 +488,19 @@ public class Weather {
         JSONObject hourlyData = data.getJSONObject("hourly");
         JSONObject dailyData = data.getJSONObject("daily");
         JSONObject currentWeather = data.getJSONObject("current_weather");
+        // Temperature for days
+        for (int i = 0; i < dayTempMaxes.length; i++) {
+            dayTempMaxes[i] = dailyData.getJSONArray("temperature_2m_max").getDouble(i);
+            dayTempMins[i] = dailyData.getJSONArray("temperature_2m_min").getDouble(i);
+        }
+        // Rain percentage for days
+        for (int i = 0; i < dayRainPercentages.length; i++) {
+            dayRainPercentages[i] = dailyData.getJSONArray("precipitation_probability_max").getDouble(i);
+        }
+        // UV index for days
+        for (int i = 0; i < dayUVIndexes.length; i++) {
+            dayUVIndexes[i] = dailyData.getJSONArray("uv_index_max").getDouble(i);
+        }
 
         // Temperature now
         tempNow = currentWeather.getDouble("temperature");
@@ -548,29 +573,32 @@ public class Weather {
         hourNow = getHour(currentWeather.getString("time")); 
 
         // Assign sunset and sunrise values
-        String sunset = "sunset: " + formatTime(sunsetArray.getString(0));
-        String sunrise = "sunrise: " + formatTime(sunriseArray.getString(0));
+        String sunset = formatTime(sunsetArray.getString(0));
+        String sunrise = formatTime(sunriseArray.getString(0));
 
         sunsetValue = sunset;
         sunriseValue = sunrise;
-
+        System.out.println(sunset);
+        System.out.println(sunrise);
+        theHourOfSunrise = getHourFromFormattedTime(sunrise);
+        theHourOfSunset = getHourFromFormattedTime(sunset);
+        System.out.println(theHourOfSunrise);
+        System.out.println(theHourOfSunset);
         // Temperature at 2m for the first hour
         JSONArray tempMaxArray = dailyData.getJSONArray("temperature_2m_max");
         JSONArray tempMinArray = dailyData.getJSONArray("temperature_2m_min");
         tempMax = tempMaxArray.getDouble(0);
         tempMin = tempMinArray.getDouble(0);
     }
+    
     // Method to read the API and return the JSON object
     public static JSONObject getWeatherData(String latitude, String longitude) throws Exception {
         String apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude +
                 "&longitude=" + longitude +
                 "&hourly=temperature_2m,precipitation,uv_index,relative_humidity_2m,surface_pressure,visibility,windspeed_10m,winddirection_10m" +
-                "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset" +
+                "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,precipitation_probability_min,uv_index_max" +
                 "&current_weather=true" +
                 "&timezone=auto";
-
-    
-        System.out.println("API URL: " + apiUrl);
     
         URI uri = new URI(apiUrl);
         URL url = uri.toURL();
@@ -649,5 +677,16 @@ public class Weather {
             return -1; // Handle invalid format
         }
     }
-    
+    //Method to get the hour of the sunrise and sunset from formatted time
+    public int getHourFromFormattedTime(String timeString) {
+        try {
+            // Parse the time in HH:mm format
+            LocalTime time = LocalTime.parse(timeString);
+            // Return the hour part
+            return time.getHour();
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+            return -1; // Handle invalid format
+        }
+    }
 }
