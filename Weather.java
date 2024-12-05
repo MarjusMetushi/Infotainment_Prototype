@@ -502,12 +502,6 @@ public class Weather {
         field.setFont(new Font("Arial", Font.BOLD, 15));
     }
 
-    
-    // Method to put the api's to work
-    public void apiWork() throws Exception{
-        loadCurrentLocation();
-        setUpLocationAPI();
-    }
     // Method to set the variables with the data extracted from the API
     public void setVariablesWithData() throws Exception {
         // Retrieve the JSON data into JSONObjects
@@ -649,16 +643,50 @@ public class Weather {
     }
     
     // Method to set up the location API
-    public void setUpLocationAPI(){
-        //Get the latitude and longitude of the place the user wants to search
-        // Take the url
-        // String apiUrl = "https://nominatim.openstreetmap.org/search?q=CityName&format=json";
+    public void setUpLocationAPI(String city) throws IOException{
+        String apiUrl = "https://nominatim.openstreetmap.org/search?q=" + city + "&format=json&addressdetails=1";
+        URL url = new URL(apiUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line;
+        StringBuilder response = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
+        JSONObject jsonResponse = new JSONObject(response.toString());
+        if (jsonResponse.length() > 0) {
+            String latitude = jsonResponse.getJSONArray("results").getJSONObject(0).getString("lat");
+            String longitude = jsonResponse.getJSONArray("results").getJSONObject(0).getString("lon");
+            
+            System.out.println("Latitude: " + latitude);
+            System.out.println("Longitude: " + longitude);
+        } else {
+            System.out.println("City not found");
+        }
     }
     // Method to load the current location
-    public void loadCurrentLocation(){
-        // Get the IP first and then extract the latitude and longitude
-        // Take the url
-        // String apiUrl = "http://ip-api.com/json/";
+    public void loadCurrentLocation() throws IOException{
+        String apiUrl = "http://ip-api.com/json/";
+        URL url = new URL(apiUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line;
+        StringBuilder response = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
+        JSONObject jsonResponse = new JSONObject(response.toString());
+        String latitude = jsonResponse.getString("lat");
+        String longitude = jsonResponse.getString("lon");
+
+        System.out.println("Current Latitude: " + latitude);
+        System.out.println("Current Longitude: " + longitude);
     }
 
     // Method to show the wind direction
