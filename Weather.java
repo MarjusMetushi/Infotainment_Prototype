@@ -7,15 +7,19 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Properties;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -41,9 +45,6 @@ import org.json.JSONObject;
  *  What to do
  *  Replace dummy pictures with the actual pictures
  *  Create the pictures and find out the exact size of the frame
- *  Set up the location
- *  // Later
- *  Fix the system for searching for the location and displaying stuff
  *  Fix the UI overall
  */
 
@@ -52,7 +53,7 @@ public class Weather {
     String latitude = "52.5497";
     String longitude = "13.4250";
     // Variables for the current weather
-    String location;
+    String location = "Berlin";
     double uvIndexNow;
     double tempMax;
     double tempMin;
@@ -90,6 +91,7 @@ public class Weather {
     JPanel centerPanel = new JPanel();
     JPanel basicInfoBottomPanel = new JPanel(new GridLayout(1, 5));
     JTextField searchBar = new JTextField(40);
+    JButton searchOrReset = new JButton("Search/ Reset location");
     Properties config = new Properties();
     Color backgroundColor;
     Color foregroundColor;
@@ -115,6 +117,23 @@ public class Weather {
         customizeAndAddComponentsTop();
         customizeAndAddComponentsCenter();
         customizeAndAddComponentsBottom();
+        searchOrReset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if(searchBar.getText().length() == 0){
+                        loadCurrentLocation();
+                    }else{
+                        setUpLocationAPI(searchBar.getText().trim().toLowerCase());
+                    }
+                    System.out.println("City: " + location);
+                    System.out.println("Latitude: " + latitude);
+                    System.out.println("Longitude: " + longitude);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
         // Add everything together
         dialog.add(topPanel, BorderLayout.NORTH);
         topPanel.add(searchBarPanel, BorderLayout.SOUTH);
@@ -199,36 +218,7 @@ public class Weather {
         hourPredictionPanel.setLayout(new GridLayout(7, 2, 0, 0));
         hourPredictionPanel.setBackground(Color.LIGHT_GRAY);
     
-        for (int i = 0; i < hourTemps.length; i++) {
-            // Set up and customize the textPane 
-            int hourTime = (hourNow + (i + 1)) % 24;
-            String str = "\n"+ hourTime + ":00 \n" + hourTemps[i] + "°C";
-            JTextPane hour = new JTextPane();
-            hour.setText(str);
-            hour.setBorder(new LineBorder(backgroundColor));
-            hour.setEditable(false);
-            hour.setFocusable(false);
-            hour.setFont(new Font("Arial", Font.BOLD, 18));
-            boolean isDayOrNight;
-            if(hourTime < theHourOfSunrise || hourTime > theHourOfSunset){
-                isDayOrNight = false;
-            }
-            else{
-                isDayOrNight = true;
-            }
-            hour.setForeground(foregroundColor);
-            // Set text alignment to center
-            Style style = hour.getStyle(StyleContext.DEFAULT_STYLE);
-            StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
-            hour.setParagraphAttributes(style, true);
-
-            // Set the background based on rain percentage
-            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], hourTime, isDayOrNight, true);
-            JPanel backgroundPanel = createBackgroundPanel(hour, imagePath);
-
-            // Add the panel to the hourPredictionPanel
-            hourPredictionPanel.add(backgroundPanel);
-        }
+        addHourButtonPredictions(hourPredictionPanel);
 
         // Add hourPredictionPanel to the left panel
         left.add(hourPredictionPanel, BorderLayout.CENTER);
@@ -249,23 +239,7 @@ public class Weather {
         // The day prediction panel
         JPanel dayPrediction = new JPanel();
         dayPrediction.setLayout(new GridLayout(1, 10));
-        for(int i = 0; i < dayTempMaxes.length; i++){
-            String Tempstr = "High: " + dayTempMaxes[i] + "°C\nLow: " + dayTempMins[i] + "°C";
-            String Rainstr = "Rain: " + dayRainPercentages[i] + "%";
-            String UVstr = "UV: " + dayUVIndexes[i];
-            JTextPane dayTextArea = new JTextPane(); 
-            dayTextArea.setText(Tempstr + "\n" + Rainstr + "\n" + UVstr);
-            dayTextArea.setForeground(foregroundColor);
-            dayTextArea.setFont(new Font("Arial", Font.BOLD, 18));
-            dayTextArea.setBorder(new LineBorder(buttonBorderColor));
-            dayPrediction.add(dayTextArea);
-            dayPrediction.setFocusable(false);
-            dayTextArea.setEditable(false);
-            dayTextArea.setFocusable(false);
-            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], 0, true, true);
-            JPanel backgroundPanel = createBackgroundPanel(dayTextArea, imagePath);
-            dayPrediction.add(backgroundPanel);
-        }
+        addDayButtonPredictions(dayPrediction);
         bottomRightPanel.add(dayPrediction);
         // Panel for the weather basic info
         
@@ -328,6 +302,62 @@ public class Weather {
         infogridPanel.add(dayOrNight);
         infogridPanel.add(sunsetOrSunrise);
         topRightPanel.add(infogridPanel);
+    }
+
+    // Method to add the hour predictions
+    public void addHourButtonPredictions(JPanel hourPredictionPanel){
+        for (int i = 0; i < hourTemps.length; i++) {
+            // Set up and customize the textPane 
+            int hourTime = (hourNow + (i + 1)) % 24;
+            String str = "\n"+ hourTime + ":00 \n" + hourTemps[i] + "°C";
+            JTextPane hour = new JTextPane();
+            hour.setText(str);
+            hour.setBorder(new LineBorder(backgroundColor));
+            hour.setEditable(false);
+            hour.setFocusable(false);
+            hour.setFont(new Font("Arial", Font.BOLD, 18));
+            boolean isDayOrNight;
+            if(hourTime < theHourOfSunrise || hourTime > theHourOfSunset){
+                isDayOrNight = false;
+            }
+            else{
+                isDayOrNight = true;
+            }
+            hour.setForeground(foregroundColor);
+            // Set text alignment to center
+            Style style = hour.getStyle(StyleContext.DEFAULT_STYLE);
+            StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
+            hour.setParagraphAttributes(style, true);
+
+            // Set the background based on rain percentage
+            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], hourTime, isDayOrNight, true);
+            JPanel backgroundPanel = createBackgroundPanel(hour, imagePath);
+
+            // Add the panel to the hourPredictionPanel
+            hourPredictionPanel.add(backgroundPanel);
+        }
+    }
+
+
+    // Method to add the day predictions
+    public void addDayButtonPredictions(JPanel dayPrediction){
+        for(int i = 0; i < dayTempMaxes.length; i++){
+            String Tempstr = "High: " + dayTempMaxes[i] + "°C\nLow: " + dayTempMins[i] + "°C";
+            String Rainstr = "Rain: " + dayRainPercentages[i] + "%";
+            String UVstr = "UV: " + dayUVIndexes[i];
+            JTextPane dayTextArea = new JTextPane(); 
+            dayTextArea.setText(Tempstr + "\n" + Rainstr + "\n" + UVstr);
+            dayTextArea.setForeground(foregroundColor);
+            dayTextArea.setFont(new Font("Arial", Font.BOLD, 18));
+            dayTextArea.setBorder(new LineBorder(buttonBorderColor));
+            dayPrediction.add(dayTextArea);
+            dayPrediction.setFocusable(false);
+            dayTextArea.setEditable(false);
+            dayTextArea.setFocusable(false);
+            String imagePath = decidePath(rainPercents[i], hourTemps[i], uvIndexes[i], humidityValues[i], windSpeeds[i], 0, true, true);
+            JPanel backgroundPanel = createBackgroundPanel(dayTextArea, imagePath);
+            dayPrediction.add(backgroundPanel);
+        }
     }
 
     public JPanel setBackgroundForIndicatorArea(String imgPath) {
@@ -465,7 +495,6 @@ public class Weather {
         JButton visibility = new JButton("Visibility: " + visibilityValue + "km");
         JButton humidity = new JButton("Humidity: " + humidityValue + "%");
         JButton pressure = new JButton("Pressure: " + pressureValue + "hpa");
-        JButton searchOrReset = new JButton("Search/ Reset location");
         // Buttons costumization
         customizeButtons(windspeed);
         customizeButtons(visibility);
@@ -505,7 +534,7 @@ public class Weather {
     // Method to set the variables with the data extracted from the API
     public void setVariablesWithData() throws Exception {
         // Retrieve the JSON data into JSONObjects
-        JSONObject data = getWeatherData("52.5200", "13.4050");
+        JSONObject data = getWeatherData(latitude, longitude);
         JSONObject hourlyData = data.getJSONObject("hourly");
         JSONObject dailyData = data.getJSONObject("daily");
         JSONObject currentWeather = data.getJSONObject("current_weather");
@@ -643,12 +672,13 @@ public class Weather {
     }
     
     // Method to set up the location API
-    public void setUpLocationAPI(String city) throws IOException{
-        String apiUrl = "https://nominatim.openstreetmap.org/search?q=" + city + "&format=json&addressdetails=1";
+    public void setUpLocationAPI(String city) throws Exception {
+        String apiUrl = "https://nominatim.openstreetmap.org/search?q=" + URLEncoder.encode(city, "UTF-8") + "&format=json&addressdetails=1";
         URL url = new URL(apiUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(5000);
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String line;
         StringBuilder response = new StringBuilder();
@@ -656,19 +686,27 @@ public class Weather {
             response.append(line);
         }
         reader.close();
-        JSONObject jsonResponse = new JSONObject(response.toString());
+
+        System.out.println("API Response: " + response.toString()); // Debugging
+
+        // Parse the response only if it's not empty
+        JSONArray jsonResponse = new JSONArray(response.toString());
         if (jsonResponse.length() > 0) {
-            String latitude = jsonResponse.getJSONArray("results").getJSONObject(0).getString("lat");
-            String longitude = jsonResponse.getJSONArray("results").getJSONObject(0).getString("lon");
-            
+            JSONObject firstResult = jsonResponse.getJSONObject(0);
+            latitude = firstResult.getString("lat");
+            longitude = firstResult.getString("lon");
+            location = city;
+            System.out.println("City: " + city);
             System.out.println("Latitude: " + latitude);
             System.out.println("Longitude: " + longitude);
         } else {
-            System.out.println("City not found");
+            System.out.println("City not found in the API response.");
         }
+        reload();
     }
+
     // Method to load the current location
-    public void loadCurrentLocation() throws IOException{
+    public void loadCurrentLocation() throws Exception{
         String apiUrl = "http://ip-api.com/json/";
         URL url = new URL(apiUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -682,11 +720,28 @@ public class Weather {
         }
         reader.close();
         JSONObject jsonResponse = new JSONObject(response.toString());
-        String latitude = jsonResponse.getString("lat");
-        String longitude = jsonResponse.getString("lon");
-
+        BigDecimal lat = jsonResponse.getBigDecimal("lat");
+        BigDecimal lon = jsonResponse.getBigDecimal("lon");
+        latitude = lat.toString();
+        longitude = lon.toString();
+        location = "Current Location";
         System.out.println("Current Latitude: " + latitude);
         System.out.println("Current Longitude: " + longitude);
+        reload();
+    }
+
+    // Method to reload the data
+    public void reload() throws Exception {
+        setVariablesWithData();
+        centerPanel.removeAll();
+        basicInfoBottomPanel.removeAll();
+        customizeAndAddComponentsCenter();
+        customizeAndAddComponentsBottom();
+        centerPanel.repaint();
+        centerPanel.revalidate();
+        basicInfoBottomPanel.repaint();
+        basicInfoBottomPanel.revalidate();
+        searchBar.setText("");
     }
 
     // Method to show the wind direction
