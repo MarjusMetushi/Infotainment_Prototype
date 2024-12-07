@@ -3,16 +3,17 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Locale;
 import java.util.Properties;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 /*
     TO DO!
- *  Make the volume work
  *  Add the dashcam functionality
  *  Add the functionality for the music
  *  Update the speed continuously in a thread
  *  IMPLEMENT THE LOGIC FOR THE MARQUEE
+ *  Make something about getting the systems current volume value
  */
 public class UserInterface extends JFrame {
     //Setting up basic settings
@@ -27,9 +28,15 @@ public class UserInterface extends JFrame {
     JPanel bottomPanel = new JPanel(new GridBagLayout()); 
     JPanel bottomLeftPanel = new JPanel(new GridLayout(2, 1));
     JPanel bottomRightPanel = new JPanel(new BorderLayout());
+    int currentVolume = 0;
+    VolumeBarPanel volumeBarPanel = new VolumeBarPanel(currentVolume);
+    // Setting up the buttons
+    JButton volumeUpButton = new JButton("+");
+    JButton volumeDownButton = new JButton("-");
+    JButton muteButton = new JButton("MUTE");
     //Constructor to set up the UI
     @SuppressWarnings("OverridableMethodCallInConstructor")
-    public UserInterface() {
+    public UserInterface(){
         //Loading settings 
         loadConfig();
         //Getting the background and foreground colors from the properties file and getting the color from a string
@@ -69,7 +76,9 @@ public class UserInterface extends JFrame {
         //Adding everything together
         add(topPanel, BorderLayout.NORTH);
         add(bottomPanel, BorderLayout.CENTER);
+        add(volumeBarPanel, BorderLayout.WEST);
     }
+    
     //Method to load the configurations
     @SuppressWarnings("ConvertToTryWithResources")
     public void loadConfig(){
@@ -80,9 +89,10 @@ public class UserInterface extends JFrame {
             config.load(fileInputStream);
             fileInputStream.close();
         } catch (IOException e) {
-            //No catch
+            // For debugging
         }
     }
+    
     //Method to add components to the top panel and costumize
     public void addComponentsTop() {
         //Set time and date
@@ -120,10 +130,8 @@ public class UserInterface extends JFrame {
         // Setting up the buttons and textareas
         int speed = 50;
         SemiCircularSpeedometer basicInfoArea = new SemiCircularSpeedometer(speed);
-        JButton selfieButton = new JButton("[◉¯]");
-        JButton weatherButton = new JButton("🌡️");
-        JButton volumeUpButton = new JButton("+");
-        JButton volumeDownButton = new JButton("-");
+        JButton selfieButton = new JButton("CAM");
+        JButton weatherButton = new JButton("WEATHER");
         //
         weatherButton.addActionListener(new ActionListener(){
             @Override
@@ -132,6 +140,36 @@ public class UserInterface extends JFrame {
                     new Weather();
                 } catch (Exception e1) {
                     System.out.println("Error: " + e1.getMessage());
+                }
+            }
+        });
+        muteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    volumeCommands("mute");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        volumeUpButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    volumeCommands("increase");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        volumeDownButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    volumeCommands("decrease");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
         });
@@ -145,14 +183,18 @@ public class UserInterface extends JFrame {
         weatherButton.setPreferredSize(new Dimension(80, 50));
         volumeDownButton.setPreferredSize(new Dimension(80, 50));
         volumeUpButton.setPreferredSize(new Dimension(80, 50));
+        muteButton.setPreferredSize(new Dimension(80, 50));
+        muteButton.setFont(new Font("Arial", Font.BOLD, 15));
         carHealthButton.setPreferredSize(new Dimension(100, 50));
         carHealthButton.setFont(new Font("Arial", Font.BOLD, 13));
+        
         //Costumize buttons
         costumizeButtons(selfieButton);
         costumizeButtons(weatherButton);
         costumizeButtons(volumeUpButton);
         costumizeButtons(volumeDownButton);
         costumizeButtons(carHealthButton);
+        costumizeButtons(muteButton);
         //Costumize panels
         wrapperPanel.setBackground(backgroundColor);
         wrapperPanel.setForeground(foregroundColor);
@@ -163,6 +205,7 @@ public class UserInterface extends JFrame {
         bottomLeftPanel.setLayout(new BoxLayout(bottomLeftPanel, BoxLayout.Y_AXIS));
         // Adding everything together
         speedometerPanel.add(basicInfoArea);
+        quickAccessPanel.add(muteButton);
         quickAccessPanel.add(volumeUpButton);
         quickAccessPanel.add(volumeDownButton);
         quickAccessPanel.add(selfieButton);
@@ -281,5 +324,69 @@ public class UserInterface extends JFrame {
             case "blue" -> Color.BLUE;
             default -> Color.WHITE; //Default value to be returned
         };
+    }
+    // Method to control the volume
+    public void volumeCommands(String command) throws IOException {
+        String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    
+        try {
+            if (os.contains("win")) {
+                String nircmdPath = "lib\\nircmd.exe"; 
+                System.out.println("Running on Windows. Executing command: " + command);
+                if(command.equals("mute") && muteButton.getText().equals("MUTE")){
+                    muteButton.setText("UNMUTE");
+                    String com = nircmdPath + " mutesysvolume 1";
+                    volumeBarPanel.setCurrentVolume(0);
+                    Runtime.getRuntime().exec(com);
+                } else if(command.equals("mute") && muteButton.getText().equals("UNMUTE")){
+                    muteButton.setText("MUTE");
+                    String com = nircmdPath + " mutesysvolume 0";
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                    Runtime.getRuntime().exec(com);
+                }
+                if (command.equals("increase")) {
+                    String com = nircmdPath + " changesysvolume 5000";
+                    if (currentVolume + 5 > 100) {
+                        currentVolume = 100;
+                    }else{
+                        currentVolume += 5;
+                    }
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                    Runtime.getRuntime().exec(com);
+                } else if (command.equals("decrease")) {
+                    String com = nircmdPath + " changesysvolume -5000";
+                    if (currentVolume - 5 < 0) {
+                        currentVolume = 0;
+                    }else{
+                        currentVolume -= 5;
+                    }
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                    Runtime.getRuntime().exec(com);
+                }
+            } else if (os.contains("linux")) {
+                System.out.println("Running on Linux. Executing command: " + command);
+                if (command.equals("increase")) {
+                    String com = "pactl set-sink-volume @DEFAULT_SINK@ +5%";
+                    if (currentVolume + 5 > 100) {
+                        currentVolume = 100;
+                    }else{
+                        currentVolume += 5;
+                    }
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                    Runtime.getRuntime().exec(com);
+                } else if (command.equals("decrease")) {
+                    String com = "pactl set-sink-volume @DEFAULT_SINK@ -5%";
+                    if (currentVolume - 5 < 0) {
+                        currentVolume = 0;
+                    }else{
+                        currentVolume -= 5;
+                    }
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                    Runtime.getRuntime().exec(com);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
