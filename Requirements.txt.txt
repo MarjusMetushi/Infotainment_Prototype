@@ -1,3 +1,0 @@
-Install java
-Install python
-Install c++

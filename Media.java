@@ -62,7 +62,7 @@ public class Media {
             default -> Color.WHITE;
         };
     }
-    //Method to costumize and add Components
+    //Method to Customize and add Components
     public void setAndCustomizeComponents() {
         // Create buttons
         JButton ytmusicButton = new JButton("YouTube Music");
@@ -73,12 +73,12 @@ public class Media {
         JButton mirroringButton = new JButton("Mirroring");
 
         // Customize buttons
-        costumizeButton(ytmusicButton);
-        costumizeButton(spotifyButton);
-        costumizeButton(kodiButton);
-        costumizeButton(auxButton);
-        costumizeButton(usbButton);
-        costumizeButton(mirroringButton);
+        CustomizeButton(ytmusicButton);
+        CustomizeButton(spotifyButton);
+        CustomizeButton(kodiButton);
+        CustomizeButton(auxButton);
+        CustomizeButton(usbButton);
+        CustomizeButton(mirroringButton);
 
         // Add buttons to the main panel with GridBagLayout constraints
         GridBagConstraints gbc = new GridBagConstraints();
@@ -103,7 +103,7 @@ public class Media {
         gbc.gridx = 2;
         mainPanel.add(mirroringButton, gbc);
     }
-    //Method to add components and costumize the topPanel
+    //Method to add components and Customize the topPanel
     public void addComponentsTop() {
         //Adding the time
         JTextField timeAndDateField = new JTextField("Time: 19:20, Date: 2024-11-22");
@@ -115,8 +115,8 @@ public class Media {
         new Time(timeAndDateField, "HH:mm:ss, yyyy-MM-dd");
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
     }
-    //Costumizing the buttons
-    public void costumizeButton(JButton btn) {
+    //Customizing the buttons
+    public void CustomizeButton(JButton btn) {
         btn.setBackground(backgroundColor);
         btn.setForeground(foregroundColor);
         btn.setFont(new Font("Arial", Font.BOLD, 20));

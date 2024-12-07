@@ -11,7 +11,7 @@ public class healthLog {
     Color backgroundColor;
     Color foregroundColor;
     Color buttonBorderColor;
-    //Costructor to set up and costumize the interface
+    //Costructor to set up and Customize the interface
     @SuppressWarnings("OverridableMethodCallInConstructor")
     healthLog() {
         //Call the method to load the config
@@ -26,7 +26,7 @@ public class healthLog {
         JDialog dialog = new JDialog();
         dialog.setSize(1280, 720);
         dialog.setLayout(new BorderLayout());
-        //Methods to costumize the dialog
+        //Methods to Customize the dialog
         addAndCustomizeTopPanelComponents();
         addAndCustomizeMainPanelComponents();
 
@@ -68,7 +68,7 @@ public class healthLog {
         addNotification("Car needs water !");
         addNotification("Oil check time !");
     }
-    //Method to add components and costumize them in the top panel
+    //Method to add components and Customize them in the top panel
     public void addAndCustomizeTopPanelComponents() {
         topPanel.setLayout(new BorderLayout());
         topPanel.setBackground(backgroundColor);

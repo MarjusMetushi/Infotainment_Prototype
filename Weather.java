@@ -181,7 +181,7 @@ public class Weather {
         timeAndDateField.setBorder(BorderFactory.createLineBorder(buttonBorderColor, 2));
         new Time(timeAndDateField, "HH:mm:ss, yyyy-MM-dd");
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
-        // Costumize the searchbar panel and textfield
+        // Customize the searchbar panel and textfield
         searchBarPanel.setBackground(backgroundColor);
         searchBar.setBackground(backgroundColor);
         searchBar.setForeground(foregroundColor);
@@ -304,7 +304,7 @@ public class Weather {
         JTextField dayOrNight = new JTextField(isDayOrNight);
         String sunsetOrSunriseText = isDay == 1 ? "Sunset " + sunsetValue : "Sunrise " + sunriseValue;
         JTextField sunsetOrSunrise = new JTextField(sunsetOrSunriseText);
-        // Costumize the textfields
+        // Customize the textfields
         customizeCurrentWeatherFields(rainPercentage);
         customizeCurrentWeatherFields(uvIndex);
         customizeCurrentWeatherFields(rainMili);
@@ -511,7 +511,7 @@ public class Weather {
         JButton visibility = new JButton("Visibility: " + visibilityValue + "km");
         JButton humidity = new JButton("Humidity: " + humidityValue + "%");
         JButton pressure = new JButton("Pressure: " + pressureValue + "hpa");
-        // Buttons costumization
+        // Buttons Customization
         customizeButtons(windspeed);
         customizeButtons(visibility);
         customizeButtons(humidity);
@@ -525,7 +525,7 @@ public class Weather {
         basicInfoBottomPanel.add(searchOrReset);
     }
 
-    // Method to costumize buttons
+    // Method to Customize buttons
     public void customizeButtons(JButton button) {
         button.setBackground(backgroundColor);
         button.setForeground(foregroundColor);

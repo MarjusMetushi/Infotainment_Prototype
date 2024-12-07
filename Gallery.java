@@ -92,7 +92,7 @@ public class Gallery {
         bottomPanel.setForeground(foregroundColor);
         searchBar.setBackground(backgroundColor);
         searchBar.setForeground(foregroundColor);
-        // Add the search bar and do more costumization
+        // Add the search bar and do more Customization
         topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         searchLabel.setForeground(foregroundColor);
         searchLabel.setFont(new Font("Arial",Font.BOLD, 20));
@@ -129,7 +129,7 @@ public class Gallery {
         JButton deleteButton = new JButton("Delete");
         JButton renameButton = new JButton("Rename");
         JButton sortButton = new JButton("Sort");
-        //Costumize Buttons
+        //Customize Buttons
         openButton.setBackground(backgroundColor);
         openButton.setForeground(foregroundColor);
         openButton.setBorder(BorderFactory.createLineBorder(buttonBorderColor));

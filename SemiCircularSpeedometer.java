@@ -73,9 +73,9 @@ public class SemiCircularSpeedometer extends JComponent {
         g2d.setColor(speedometerColor);
         g2d.drawArc(20, 20, width - 40, height * 2 - 40, arcStartAngle, -Math.min(speedAngle, arcAngle)); // Ensure it doesn't exceed full arc
 
-        // Use font and foreground color for text
-        g2d.setFont(getFont()); // Use the set font
-        g2d.setColor(getForeground()); // Use the set foreground color
+        // Customization for the speedometer
+        g2d.setFont(getFont());
+        g2d.setColor(getForeground()); 
         String speedText = currentSpeed + " km/h";
         int textWidth = g2d.getFontMetrics().stringWidth(speedText);
         g2d.drawString(speedText, (width - textWidth) / 2, height - 10);

@@ -1,5 +1,3 @@
-
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -13,7 +11,8 @@ import javax.swing.border.LineBorder;
  *  Add the functionality for the music
  *  Update the speed continuously in a thread
  *  IMPLEMENT THE LOGIC FOR THE MARQUEE
- *  Make something about getting the systems current volume value
+ *  Test for linux systems
+ *  Make a public static method to play a song from the device
  */
 public class UserInterface extends JFrame {
     //Setting up basic settings
@@ -28,7 +27,7 @@ public class UserInterface extends JFrame {
     JPanel bottomPanel = new JPanel(new GridBagLayout()); 
     JPanel bottomLeftPanel = new JPanel(new GridLayout(2, 1));
     JPanel bottomRightPanel = new JPanel(new BorderLayout());
-    int currentVolume = 0;
+    int currentVolume = getSystemVolume();
     VolumeBarPanel volumeBarPanel = new VolumeBarPanel(currentVolume);
     // Setting up the buttons
     JButton volumeUpButton = new JButton("+");
@@ -55,7 +54,7 @@ public class UserInterface extends JFrame {
         addComponentsTop();
         addComponentsBottomLeft();
         addComponentsBottomRight();
-        //Costumize the panels
+        //Customize the panels
         topPanel.setBackground(backgroundColor);
         topPanel.setForeground(foregroundColor);
         bottomPanel.setBackground(backgroundColor);
@@ -92,12 +91,38 @@ public class UserInterface extends JFrame {
             // For debugging
         }
     }
-    
-    //Method to add components to the top panel and costumize
+    // Method to get the system volume
+    public static int getSystemVolume() {
+        try {
+            // Path to the executable
+            String exePath = "output\\getSystemVolume.exe";
+            // Get the input stream from the executable
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                    new ProcessBuilder(exePath).start().getInputStream()
+                )
+            );
+            // Read the output line by line
+            String outputLine = reader.readLine();
+            // Parse the output line to an integer
+            int volumePercentage = (outputLine != null) 
+                ? Integer.parseInt(outputLine.replaceAll("[^0-9]", ""))
+                : -1; // Fallback if no output
+            // Close the reader
+            reader.close();
+            return volumePercentage;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Fallback in case of error
+        return -1;
+    }
+
+    //Method to add components to the top panel and Customize
     public void addComponentsTop() {
         //Set time and date
         JTextField timeAndDateField = new JTextField("Time: 12:00, Date: 2024-11-16");
-        //Costumize the JTextArea
+        //Customize the JTextArea
         timeAndDateField.setHorizontalAlignment(JTextField.CENTER);
         timeAndDateField.setEditable(false);
         timeAndDateField.setBackground(backgroundColor);
@@ -106,7 +131,7 @@ public class UserInterface extends JFrame {
         new Time(timeAndDateField, "HH:mm:ss, yyyy-MM-dd");
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
     }
-    //Method to costumize Bottom left panel
+    //Method to Customize Bottom left panel
     @SuppressWarnings("Convert2Lambda")
     public void addComponentsBottomLeft() {
         // Setting up the panels
@@ -188,14 +213,14 @@ public class UserInterface extends JFrame {
         carHealthButton.setPreferredSize(new Dimension(100, 50));
         carHealthButton.setFont(new Font("Arial", Font.BOLD, 13));
         
-        //Costumize buttons
-        costumizeButtons(selfieButton);
-        costumizeButtons(weatherButton);
-        costumizeButtons(volumeUpButton);
-        costumizeButtons(volumeDownButton);
-        costumizeButtons(carHealthButton);
-        costumizeButtons(muteButton);
-        //Costumize panels
+        //Customize buttons
+        CustomizeButtons(selfieButton);
+        CustomizeButtons(weatherButton);
+        CustomizeButtons(volumeUpButton);
+        CustomizeButtons(volumeDownButton);
+        CustomizeButtons(carHealthButton);
+        CustomizeButtons(muteButton);
+        //Customize panels
         wrapperPanel.setBackground(backgroundColor);
         wrapperPanel.setForeground(foregroundColor);
         speedometerPanel.setBackground(backgroundColor);
@@ -239,13 +264,13 @@ public class UserInterface extends JFrame {
                 new Gallery();
             }
         });
-        //Costumizing the buttons
-        costumizeButtons(maps);
-        costumizeButtons(media);
-        costumizeButtons(dashcam);
-        costumizeButtons(dashboard);
-        costumizeButtons(gallery);
-        costumizeButtons(settings);
+        //Customizing the buttons
+        CustomizeButtons(maps);
+        CustomizeButtons(media);
+        CustomizeButtons(dashcam);
+        CustomizeButtons(dashboard);
+        CustomizeButtons(gallery);
+        CustomizeButtons(settings);
         //Setting the bounds, spacing and offset
         int buttonWidth = 250;
         int buttonHeight = 150;
@@ -286,9 +311,9 @@ public class UserInterface extends JFrame {
         appsPanel.setForeground(foregroundColor);
         playing.setBackground(backgroundColor);
         playing.setForeground(foregroundColor);
-        costumizeMusicButtons(pauseOrPlay);
-        costumizeMusicButtons(previous);
-        costumizeMusicButtons(next);
+        CustomizeMusicButtons(pauseOrPlay);
+        CustomizeMusicButtons(previous);
+        CustomizeMusicButtons(next);
         //Adding everything together
         musicPanel.add(pauseOrPlay);
         musicPanel.add(previous);
@@ -297,8 +322,8 @@ public class UserInterface extends JFrame {
         bottomRightPanel.add(musicPanel, BorderLayout.SOUTH);
         bottomRightPanel.add(appsPanel, BorderLayout.CENTER);
     }
-    //Method to costumize musicPanel's Buttons
-    public void costumizeMusicButtons(JButton btn){
+    //Method to Customize musicPanel's Buttons
+    public void CustomizeMusicButtons(JButton btn){
         btn.setBackground(backgroundColor);
         btn.setForeground(foregroundColor);
         btn.setPreferredSize(new Dimension(10,50));
@@ -306,8 +331,8 @@ public class UserInterface extends JFrame {
         btn.setFocusable(false);
         btn.setFont(new Font("Arial",Font.BOLD,15));
     }
-    //Method to costumize bottom right panel buttons
-    public void costumizeButtons(JButton btn) {
+    //Method to Customize bottom right panel buttons
+    public void CustomizeButtons(JButton btn) {
         btn.setBackground(backgroundColor);
         btn.setForeground(foregroundColor);
         btn.setBorder(BorderFactory.createLineBorder(buttonBorderColor,2));
@@ -328,9 +353,10 @@ public class UserInterface extends JFrame {
     // Method to control the volume
     public void volumeCommands(String command) throws IOException {
         String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-    
+        // Volume control for Windows
         try {
             if (os.contains("win")) {
+                // Use nircmd.exe to control the volume
                 String nircmdPath = "lib\\nircmd.exe"; 
                 System.out.println("Running on Windows. Executing command: " + command);
                 if(command.equals("mute") && muteButton.getText().equals("MUTE")){
@@ -363,6 +389,7 @@ public class UserInterface extends JFrame {
                     volumeBarPanel.setCurrentVolume(currentVolume);
                     Runtime.getRuntime().exec(com);
                 }
+                // Volume control for Linux
             } else if (os.contains("linux")) {
                 System.out.println("Running on Linux. Executing command: " + command);
                 if (command.equals("increase")) {
@@ -386,7 +413,7 @@ public class UserInterface extends JFrame {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            // For debugging
         }
     }
 }

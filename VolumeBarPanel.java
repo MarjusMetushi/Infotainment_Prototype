@@ -6,11 +6,12 @@ import java.util.Properties;
 
 // Custom VolumeBarPanel class
 public class VolumeBarPanel extends JPanel {
+    // Variable declaration
     int currentVolume;
     Color backgroundColor;
     Color foregroundColor;
     Properties config = new Properties();
-    
+    // Method to set up the volume bar panel
     public VolumeBarPanel(int currentvol) {
         loadConfig();
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
@@ -44,24 +45,24 @@ public class VolumeBarPanel extends JPanel {
         };
     }
 
-    // Public method to safely set the current volume (clamped to 0-100)
+    // Setting the volume (0-100)
     public void setCurrentVolume(int volume) {
-        currentVolume = Math.max(0, Math.min(100, volume)); // Clamp between 0 and 100
-        repaint(); // Trigger redraw
+        currentVolume = Math.max(0, Math.min(100, volume));
+        repaint();
     }
-
+    // Method to paint the volume bar
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Draw the full background of the bar
+        // Draw the background of the bar
         g.setColor(backgroundColor);
         g.fillRect(0, 0, getWidth(), getHeight());
 
         // Calculate the filled portion based on current volume percentage
         int fillHeight = (currentVolume * getHeight()) / 100;
 
-        // Draw only the filled portion from the bottom up
+        // Draw the segment to be filled from the bottom up
         g.setColor(foregroundColor);
         g.fillRect(0, getHeight() - fillHeight, getWidth(), fillHeight);
     }
