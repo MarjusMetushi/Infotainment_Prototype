@@ -37,8 +37,9 @@ public class UserInterface extends JFrame {
     public UserInterface(){
         if(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")){
             currentVolume = getSystemVolumeWin();
-        }else if(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")){
+        }else{
             currentVolume = getSystemVolumeLinux();
+            volumeBarPanel.setCurrentVolume(currentVolume);
         }
         //Loading settings 
         loadConfig();
@@ -122,7 +123,30 @@ public class UserInterface extends JFrame {
         return -1;
     }
     public static int getSystemVolumeLinux() {
-        return 0;
+        int volume = -1; // Default if parsing fails
+        try {
+            // Execute the command to get the current volume
+            Process process = Runtime.getRuntime().exec("amixer sget Master");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Look for a line with volume information
+                if (line.contains("Playback")) {
+                    // Extract the percentage value
+                    int start = line.indexOf("[") + 1;
+                    int end = line.indexOf("%");
+                    if (start > 0 && end > start) {
+                        volume = Integer.parseInt(line.substring(start, end));
+                        break;
+                    }
+                }
+            }
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return volume;
     }
 
     //Method to add components to the top panel and Customize
@@ -360,66 +384,93 @@ public class UserInterface extends JFrame {
     // Method to control the volume
     public void volumeCommands(String command) throws IOException {
         String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-        // Volume control for Windows
         try {
+            // Volume control for Windows
             if (os.contains("win")) {
+                String com = null;
                 // Use nircmd.exe to control the volume
                 String nircmdPath = "lib\\nircmd.exe"; 
                 System.out.println("Running on Windows. Executing command: " + command);
                 if(command.equals("mute") && muteButton.getText().equals("MUTE")){
                     muteButton.setText("UNMUTE");
-                    String com = nircmdPath + " mutesysvolume 1";
+                    com = nircmdPath + " mutesysvolume 1";
                     volumeBarPanel.setCurrentVolume(0);
-                    Runtime.getRuntime().exec(com);
                 } else if(command.equals("mute") && muteButton.getText().equals("UNMUTE")){
                     muteButton.setText("MUTE");
-                    String com = nircmdPath + " mutesysvolume 0";
+                   com = nircmdPath + " mutesysvolume 0";
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    Runtime.getRuntime().exec(com);
                 }
                 if (command.equals("increase")) {
-                    String com = nircmdPath + " changesysvolume 3900";
-                    if (currentVolume + 6 > 100) {
-                        currentVolume = 100;
-                    }else{
-                        currentVolume += 6;
-                    }
-                    System.out.println("Volume: " + currentVolume);
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    Runtime.getRuntime().exec(com);
-                } else if (command.equals("decrease")) {
-                    String com = nircmdPath + " changesysvolume -3900";
-                    if (currentVolume - 6 < 0) {
-                        currentVolume = 0;
-                    }else{
-                        currentVolume -= 6;
-                    }
-                    System.out.println("Volume: " + currentVolume);
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    Runtime.getRuntime().exec(com);
-                }
-                // Volume control for Linux
-            } else if (os.contains("linux")) {
-                System.out.println("Running on Linux. Executing command: " + command);
-                if (command.equals("increase")) {
-                    String com = "pactl set-sink-volume @DEFAULT_SINK@ +5%";
+                    com = nircmdPath + " changesysvolume 3900";
                     if (currentVolume + 6 > 100) {
                         currentVolume = 100;
                     }else{
                         currentVolume += 6;
                     }
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    Runtime.getRuntime().exec(com);
                 } else if (command.equals("decrease")) {
-                    String com = "pactl set-sink-volume @DEFAULT_SINK@ -5%";
+                    com = nircmdPath + " changesysvolume -3900";
                     if (currentVolume - 6 < 0) {
                         currentVolume = 0;
                     }else{
                         currentVolume -= 6;
                     }
-                    System.out.println("Volume: " + currentVolume);
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    Runtime.getRuntime().exec(com);
+                }
+                Runtime.getRuntime().exec(com);
+            } else{
+                // Volume control for Linux distributions
+                String com = null;
+
+                if (command.equals("increase")) {
+                    com = "amixer sset Master 10%+";
+                    currentVolume+=10;
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                } else if (command.equals("decrease")) {
+                    com = "amixer sset Master 10%-";
+                    if(currentVolume - 10 < 0){
+                        currentVolume = 0;
+                    }else{
+                        currentVolume -= 10;
+                    }
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                } else if(command.equals("mute") && muteButton.getText().equals("UNMUTE")){
+                    muteButton.setText("MUTE");
+                    com = "amixer sset Master unmute";
+                    if(currentVolume + 10 > 100){
+                        currentVolume = 100;
+                    }else{
+                        currentVolume += 10;
+                    }
+                    volumeBarPanel.setCurrentVolume(currentVolume);
+                }else{
+                    muteButton.setText("UNMUTE");
+                    com = "amixer sset Master mute";
+                    volumeBarPanel.setCurrentVolume(0);
+                }
+
+                if (com != null) {
+                    try {
+                        // Execute the command
+                        Process process = Runtime.getRuntime().exec(com);
+
+                        // Read the output (optional, useful for debugging)
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            System.out.println(line);
+                        }
+
+                        // Wait for the command to complete
+                        int exitCode = process.waitFor();
+                        if (exitCode == 0) {
+                            System.out.println("Volume adjusted successfully!");
+                        } else {
+                            System.err.println("Failed to adjust volume. Exit code: " + exitCode);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } catch (IOException e) {
