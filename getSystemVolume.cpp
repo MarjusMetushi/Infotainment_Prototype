@@ -49,6 +49,12 @@ void GetSystemVolume() {
     // Check if the query was successful to convert the volume level to a percentage
     if (SUCCEEDED(hr)) {
         int volumePercentage = static_cast<int>(volume * 100);
+        if (volumePercentage < 0) {
+            volumePercentage = 0;
+        }
+        if(volumePercentage > 100){
+            volumePercentage = 100;
+        }
         std::cout << "Current System Volume: " << volumePercentage << "%" << std::endl;
     } else {
         std::cerr << "Failed to get master volume level: " << _com_error(hr).ErrorMessage() << std::endl;

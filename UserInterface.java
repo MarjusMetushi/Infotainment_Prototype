@@ -1,8 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 /*
@@ -27,7 +26,7 @@ public class UserInterface extends JFrame {
     JPanel bottomPanel = new JPanel(new GridBagLayout()); 
     JPanel bottomLeftPanel = new JPanel(new GridLayout(2, 1));
     JPanel bottomRightPanel = new JPanel(new BorderLayout());
-    int currentVolume = getSystemVolume();
+    int currentVolume;
     VolumeBarPanel volumeBarPanel = new VolumeBarPanel(currentVolume);
     // Setting up the buttons
     JButton volumeUpButton = new JButton("+");
@@ -36,6 +35,11 @@ public class UserInterface extends JFrame {
     //Constructor to set up the UI
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public UserInterface(){
+        if(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")){
+            currentVolume = getSystemVolumeWin();
+        }else if(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")){
+            currentVolume = getSystemVolumeLinux();
+        }
         //Loading settings 
         loadConfig();
         //Getting the background and foreground colors from the properties file and getting the color from a string
@@ -92,7 +96,7 @@ public class UserInterface extends JFrame {
         }
     }
     // Method to get the system volume
-    public static int getSystemVolume() {
+    public static int getSystemVolumeWin() {
         try {
             // Path to the executable
             String exePath = "output\\getSystemVolume.exe";
@@ -116,6 +120,9 @@ public class UserInterface extends JFrame {
         }
         // Fallback in case of error
         return -1;
+    }
+    public static int getSystemVolumeLinux() {
+        return 0;
     }
 
     //Method to add components to the top panel and Customize
@@ -371,21 +378,23 @@ public class UserInterface extends JFrame {
                     Runtime.getRuntime().exec(com);
                 }
                 if (command.equals("increase")) {
-                    String com = nircmdPath + " changesysvolume 5000";
-                    if (currentVolume + 5 > 100) {
+                    String com = nircmdPath + " changesysvolume 3900";
+                    if (currentVolume + 6 > 100) {
                         currentVolume = 100;
                     }else{
-                        currentVolume += 5;
+                        currentVolume += 6;
                     }
+                    System.out.println("Volume: " + currentVolume);
                     volumeBarPanel.setCurrentVolume(currentVolume);
                     Runtime.getRuntime().exec(com);
                 } else if (command.equals("decrease")) {
-                    String com = nircmdPath + " changesysvolume -5000";
-                    if (currentVolume - 5 < 0) {
+                    String com = nircmdPath + " changesysvolume -3900";
+                    if (currentVolume - 6 < 0) {
                         currentVolume = 0;
                     }else{
-                        currentVolume -= 5;
+                        currentVolume -= 6;
                     }
+                    System.out.println("Volume: " + currentVolume);
                     volumeBarPanel.setCurrentVolume(currentVolume);
                     Runtime.getRuntime().exec(com);
                 }
@@ -394,20 +403,21 @@ public class UserInterface extends JFrame {
                 System.out.println("Running on Linux. Executing command: " + command);
                 if (command.equals("increase")) {
                     String com = "pactl set-sink-volume @DEFAULT_SINK@ +5%";
-                    if (currentVolume + 5 > 100) {
+                    if (currentVolume + 6 > 100) {
                         currentVolume = 100;
                     }else{
-                        currentVolume += 5;
+                        currentVolume += 6;
                     }
                     volumeBarPanel.setCurrentVolume(currentVolume);
                     Runtime.getRuntime().exec(com);
                 } else if (command.equals("decrease")) {
                     String com = "pactl set-sink-volume @DEFAULT_SINK@ -5%";
-                    if (currentVolume - 5 < 0) {
+                    if (currentVolume - 6 < 0) {
                         currentVolume = 0;
                     }else{
-                        currentVolume -= 5;
+                        currentVolume -= 6;
                     }
+                    System.out.println("Volume: " + currentVolume);
                     volumeBarPanel.setCurrentVolume(currentVolume);
                     Runtime.getRuntime().exec(com);
                 }
