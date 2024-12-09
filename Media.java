@@ -193,10 +193,6 @@ public class Media {
         return "";
     }
     
-    
-    
-    
-    
     //Method to add components and Customize the topPanel
     public void addComponentsTop() {
         //Adding the time
