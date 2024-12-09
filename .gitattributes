@@ -1,0 +1,1 @@
+lib/ffmpeg.exe !text !filter !merge !diff

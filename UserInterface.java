@@ -2,16 +2,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 /*
     TO DO!
  *  Add the dashcam functionality
- *  Add the functionality for the music
  *  Update the speed continuously in a thread
  *  IMPLEMENT THE LOGIC FOR THE MARQUEE
- *  Test for linux systems
- *  Make a public static method to play a song from the device
+ *  implement the functionality for linux systems to play a song and test it
  */
 public class UserInterface extends JFrame {
     //Setting up basic settings
@@ -39,8 +38,8 @@ public class UserInterface extends JFrame {
             currentVolume = getSystemVolumeWin();
         }else{
             currentVolume = getSystemVolumeLinux();
-            volumeBarPanel.setCurrentVolume(currentVolume);
         }
+        volumeBarPanel.setCurrentVolume(currentVolume);
         //Loading settings 
         loadConfig();
         //Getting the background and foreground colors from the properties file and getting the color from a string
@@ -82,7 +81,6 @@ public class UserInterface extends JFrame {
         add(bottomPanel, BorderLayout.CENTER);
         add(volumeBarPanel, BorderLayout.WEST);
     }
-    
     //Method to load the configurations
     @SuppressWarnings("ConvertToTryWithResources")
     public void loadConfig(){
@@ -100,7 +98,7 @@ public class UserInterface extends JFrame {
     public static int getSystemVolumeWin() {
         try {
             // Path to the executable
-            String exePath = "output\\getSystemVolume.exe";
+            String exePath = "output/getSystemVolume.exe";
             // Get the input stream from the executable
             BufferedReader reader = new BufferedReader(
                 new InputStreamReader(
@@ -389,7 +387,7 @@ public class UserInterface extends JFrame {
             if (os.contains("win")) {
                 String com = null;
                 // Use nircmd.exe to control the volume
-                String nircmdPath = "lib\\nircmd.exe"; 
+                String nircmdPath = "lib\nircmd.exe"; 
                 System.out.println("Running on Windows. Executing command: " + command);
                 if(command.equals("mute") && muteButton.getText().equals("MUTE")){
                     muteButton.setText("UNMUTE");
@@ -475,6 +473,66 @@ public class UserInterface extends JFrame {
             }
         } catch (IOException e) {
             // For debugging
+        }
+    }
+    // Method to play music by taking the file path
+    public static void playMusic(String filePath) throws UnsupportedAudioFileException, IOException, LineUnavailableException{
+        try {
+            // Turn input file path into a file object
+            File audioFile = new File(filePath);
+
+            if (!audioFile.exists()) {
+                System.out.println("The audio file does not exist: " + filePath);
+                return;
+            }
+
+            // Obtain an audio stream
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+
+            // Get the audio format
+            AudioFormat format = audioStream.getFormat();
+            DataLine.Info info = new DataLine.Info(Clip.class, format);
+
+            if (!AudioSystem.isLineSupported(info)) {
+                System.out.println("Audio format not supported.");
+                return;
+            }
+
+            // Obtain the clip and open it with the audio stream
+            Clip audioClip = (Clip) AudioSystem.getLine(info);
+            audioClip.open(audioStream);
+
+            // Add a listener to know when playback is complete
+            audioClip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    audioClip.close(); // Close the clip
+                    System.out.println("Playback completed.");
+                }
+            });
+
+            // Start the audio clip
+            System.out.println("Playing audio...");
+            audioClip.start();
+
+            // Keep the program running until the clip finishes playing
+            while (audioClip.isRunning()) {
+                Thread.sleep(100);
+            }
+
+            // Close resources
+            audioStream.close();
+        } catch (UnsupportedAudioFileException e) {
+            System.out.println("Unsupported audio file format.");
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error reading audio file.");
+            e.printStackTrace();
+        } catch (LineUnavailableException e) {
+            System.out.println("Audio line unavailable.");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            System.out.println("Playback was interrupted.");
+            e.printStackTrace();
         }
     }
 }
