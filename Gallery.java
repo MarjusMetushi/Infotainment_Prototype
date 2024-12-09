@@ -1,25 +1,8 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.awt.*;
+import java.io.*;
 import java.util.Properties;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-
-
+import javax.swing.*;
 //Add the time panel
-
 public class Gallery {
     // Variable declaration
     JPanel topPanel = new JPanel();

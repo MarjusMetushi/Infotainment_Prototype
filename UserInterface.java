@@ -115,7 +115,7 @@ public class UserInterface extends JFrame {
             reader.close();
             return volumePercentage;
         } catch (IOException e) {
-            e.printStackTrace();
+            // For debugging
         }
         // Fallback in case of error
         return -1;
@@ -142,7 +142,7 @@ public class UserInterface extends JFrame {
             }
             process.waitFor();
         } catch (Exception e) {
-            e.printStackTrace();
+            // For debugging
         }
         return volume;
     }
@@ -186,14 +186,14 @@ public class UserInterface extends JFrame {
         SemiCircularSpeedometer basicInfoArea = new SemiCircularSpeedometer(speed);
         JButton selfieButton = new JButton("CAM");
         JButton weatherButton = new JButton("WEATHER");
-        //
+        // Add action listeners to the buttons
         weatherButton.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     new Weather();
                 } catch (Exception e1) {
-                    System.out.println("Error: " + e1.getMessage());
+                    // For debugging
                 }
             }
         });
@@ -203,7 +203,7 @@ public class UserInterface extends JFrame {
                 try {
                     volumeCommands("mute");
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    // For debugging
                 }
             }
         });
@@ -213,7 +213,7 @@ public class UserInterface extends JFrame {
                 try {
                     volumeCommands("increase");
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    // For debugging
                 }
             }
         });
@@ -223,7 +223,7 @@ public class UserInterface extends JFrame {
                 try {
                     volumeCommands("decrease");
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    // For debugging
                 }
             }
         });
@@ -241,7 +241,6 @@ public class UserInterface extends JFrame {
         muteButton.setFont(new Font("Arial", Font.BOLD, 15));
         carHealthButton.setPreferredSize(new Dimension(100, 50));
         carHealthButton.setFont(new Font("Arial", Font.BOLD, 13));
-        
         //Customize buttons
         CustomizeButtons(selfieButton);
         CustomizeButtons(weatherButton);
@@ -419,7 +418,6 @@ public class UserInterface extends JFrame {
             } else{
                 // Volume control for Linux distributions
                 String com = null;
-
                 if (command.equals("increase")) {
                     com = "amixer sset Master 10%+";
                     currentVolume+=10;
@@ -452,7 +450,7 @@ public class UserInterface extends JFrame {
                         // Execute the command
                         Process process = Runtime.getRuntime().exec(com);
 
-                        // Read the output (optional, useful for debugging)
+                        // Read the output
                         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                         String line;
                         while ((line = reader.readLine()) != null) {
@@ -467,7 +465,7 @@ public class UserInterface extends JFrame {
                             System.err.println("Failed to adjust volume. Exit code: " + exitCode);
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        // For debugging
                     }
                 }
             }
@@ -494,7 +492,6 @@ public class UserInterface extends JFrame {
             DataLine.Info info = new DataLine.Info(Clip.class, format);
 
             if (!AudioSystem.isLineSupported(info)) {
-                System.out.println("Audio format not supported.");
                 return;
             }
 
@@ -506,12 +503,10 @@ public class UserInterface extends JFrame {
             audioClip.addLineListener(event -> {
                 if (event.getType() == LineEvent.Type.STOP) {
                     audioClip.close(); // Close the clip
-                    System.out.println("Playback completed.");
                 }
             });
 
             // Start the audio clip
-            System.out.println("Playing audio...");
             audioClip.start();
 
             // Keep the program running until the clip finishes playing
@@ -522,17 +517,13 @@ public class UserInterface extends JFrame {
             // Close resources
             audioStream.close();
         } catch (UnsupportedAudioFileException e) {
-            System.out.println("Unsupported audio file format.");
-            e.printStackTrace();
+            // For debugging
         } catch (IOException e) {
-            System.out.println("Error reading audio file.");
-            e.printStackTrace();
+            // For debugging
         } catch (LineUnavailableException e) {
-            System.out.println("Audio line unavailable.");
-            e.printStackTrace();
+            // For debugging
         } catch (InterruptedException e) {
-            System.out.println("Playback was interrupted.");
-            e.printStackTrace();
+            // For debugging
         }
     }
 }

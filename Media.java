@@ -211,7 +211,7 @@ public class Media {
         btn.setForeground(foregroundColor);
         btn.setFont(new Font("Arial", Font.BOLD, 20));
         btn.setBorder(BorderFactory.createLineBorder(buttonBorderColor, 2));
-        btn.setPreferredSize(new Dimension(250, 150)); // Set button size
+        btn.setPreferredSize(new Dimension(250, 150)); 
         btn.setFocusable(false);
     }
 }
