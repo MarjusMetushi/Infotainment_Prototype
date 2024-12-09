@@ -1,1 +1,1 @@
-lib/ffmpeg.exe !text !filter !merge !diff
+lib/ffmpeg.exe filter=lfs diff=lfs merge=lfs -text
