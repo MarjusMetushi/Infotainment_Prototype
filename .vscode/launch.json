@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "sys",
+      "request": "launch",
+      "mainClass": "sys",
+      "projectName": "project_304a263e"
+    },
+    {
+      "type": "java",
       "name": "VolumeGetterCoreAudio",
       "request": "launch",
       "mainClass": "VolumeGetterCoreAudio",

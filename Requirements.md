@@ -16,3 +16,4 @@
 # For linux systems:
 ## Install the following libraries:
 *  ALSA-utils -> sudo apt update && sudo apt install alsa-utils
+*  FFMPEG -> sudo apt install ffmpeg

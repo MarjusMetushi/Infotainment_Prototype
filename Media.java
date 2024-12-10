@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.Locale;
 import java.util.Properties;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -81,6 +82,7 @@ public class Media {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Take the filepath here
+                
                 String filePath = "";
                 // Play the file
                 if (filePath.endsWith(".wav")) {
@@ -131,13 +133,13 @@ public class Media {
         gbc.gridx = 2;
         mainPanel.add(mirroringButton, gbc);
     }
-    //Method to convert different formats to wav since its natively supported
+    // Method to convert different formats to wav since its natively supported
     public static String convert(String filePath) {
         try {
-            String ffmpeg = "lib/ffmpeg.exe";
+            String ffmpeg = System.getProperty("os.name").toLowerCase(Locale.ROOT).equals("win") ? "lib/ffmpeg.exe" : "ffmpeg";
     
             // Ensure the necessary directories exist
-            File outputDir = new File("cache/auSamples");
+            File outputDir = new File("cache");
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
                 System.out.println("Created directory: " + outputDir.getAbsolutePath());
@@ -155,7 +157,7 @@ public class Media {
             // Extract just the file name without directory and ensure it uses the correct path
             String inputFilePath = inputAudio.getAbsolutePath().replace("\\", "/");
             String fileName = inputAudio.getName().replaceAll("\\.\\w+$", ""); // Strip file extension
-            String outputFilePath = "cache/auSamples/" + fileName + ".wav";
+            String outputFilePath = "cache/" + fileName + ".wav";
     
             // Set up the FFmpeg command
             ProcessBuilder pb = new ProcessBuilder(
