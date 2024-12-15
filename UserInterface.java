@@ -187,6 +187,17 @@ public class UserInterface extends JFrame {
         JButton selfieButton = new JButton("CAM");
         JButton weatherButton = new JButton("WEATHER");
         // Add action listeners to the buttons
+        selfieButton.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    new frontCamera();
+                } catch (Exception e1) {
+                    // For debugging
+                }
+            }
+        });
+
         weatherButton.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
