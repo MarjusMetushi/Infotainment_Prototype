@@ -1,5 +1,6 @@
 # For All systems: 
 ## Install java
+https://www.oracle.com/java/technologies/downloads/
 ### Dependencies/Libraries used:
 * Default java libraries
 * JSON-20240205 jar file
@@ -7,9 +8,11 @@
 * getSystemVolume.exe standalone custom standalone program made from getSystemVolume.cpp
 * ffmpeg.exe from ffmpeg
 ## Install python
+https://www.python.org/downloads/
 ### Dependencies/Libraries used:
 * Default python libraries
 ## Install c++
+https://www.bloodshed.net/
 ### Dependencies/Libraries used:
 * Default c++ libraries
 * lole32 from OLE32.dll Windows library

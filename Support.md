@@ -8,3 +8,7 @@
 * WMA
 * M4A
 * WAV
+# The following operating systems are supported:
+* Windows
+* Linux Ubuntu
+* Linux raspberrian OS

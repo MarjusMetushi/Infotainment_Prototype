@@ -12,6 +12,7 @@ import javax.swing.border.LineBorder;
 public class frontCamera {
     /*
      * Requirements:
+     * USE PYTHON
      *  Create a method to display the front camera in the GUI c++ to access the driver and camera but java to display it as a thread
      *  Create a method to take a picture with the front camera and save it somewhere c++
      *  Create a method to increase/decrease the brightness of the front camera java 
