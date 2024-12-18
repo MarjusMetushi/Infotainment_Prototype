@@ -6,17 +6,13 @@
 # Function to store the picture somewhere
 # Function to start recording and stop recording and then save it somewhere
 # Function to go back
-
 import cv2
 import tkinter as tk
+from datetime import datetime
 from PIL import Image, ImageTk
 
 
 def calculate_new_dimensions(frame_width, frame_height, target_width, target_height):
-    """
-    Calculate new dimensions for resizing while preserving aspect ratio
-    within the provided target canvas size.
-    """
     aspect_ratio = frame_width / frame_height
     if target_width / target_height > aspect_ratio:
         # Canvas is too wide relative to the camera's aspect ratio
@@ -26,7 +22,7 @@ def calculate_new_dimensions(frame_width, frame_height, target_width, target_hei
         # Canvas is too tall relative to the camera's aspect ratio
         new_width = target_width
         new_height = int(target_width / aspect_ratio)
-    
+
     return new_width, new_height
 
 
@@ -36,11 +32,11 @@ def camera_feed(midPanel, cap, canvas):
         # Get the canvas dimensions
         canvas_width = canvas.winfo_width()
         canvas_height = canvas.winfo_height()
-        
+
         # If dimensions are still zero, wait until the canvas is properly rendered
         if canvas_width == 1 or canvas_height == 1:
-            canvas_width, canvas_height = 1080, 720
-        
+            canvas_width, canvas_height = 1280, 720
+
         # Resize the frame to fit the canvas while preserving aspect ratio
         new_width, new_height = calculate_new_dimensions(
             frame.shape[1], frame.shape[0], canvas_width, canvas_height
@@ -64,37 +60,49 @@ def camera_feed(midPanel, cap, canvas):
     midPanel.after(10, camera_feed, midPanel, cap, canvas)
 
 
+def update_time(timeLabel):
+    currentTime = datetime.now().strftime("%H:%M:%S")
+    timeLabel.config(text="Time: " + currentTime)
+    timeLabel.after(1000, update_time, timeLabel)  # Update every second
+
+
 def main():
     # Set up main window
     root = tk.Tk()
-    root.title("Aspect Ratio Preserved Camera")
+    root.title("Front Camera")
     root.geometry("1280x720")
 
     # Top Panel
     topPanel = tk.Frame(root, bg="black", height=110)
     topPanel.pack(fill=tk.X)
-    timeLabel = tk.Label(topPanel, text="Time: 12:00, Date: 2024-11-16", bg="black", fg="white", font=("Arial", 12))
+    timeLabel = tk.Label(topPanel, text="Time: 12:00, Date: 2024-11-16", bg="black", fg="white", font=("Arial", 16))
     timeLabel.pack(pady=20)
+    update_time(timeLabel)  # Start updating the time
 
     # Middle Panel
-    midPanel = tk.Frame(root, bg="black", height=500)
+    midPanel = tk.Frame(root, bg="black", height=500, width=500, highlightthickness=0)
     midPanel.pack(fill=tk.BOTH, expand=True)
 
     # Canvas for camera feed
-    canvas = tk.Canvas(midPanel, bg="black")
-    canvas.pack(fill=tk.BOTH, expand=True)
+    canvas = tk.Canvas(midPanel, bg="black", height=600, width=1000, highlightthickness=0)
+    canvas.place(relx=0.5, rely=0.5, anchor=tk.CENTER)  # Center the canvas
 
     # Bottom Panel
     bottomPanel = tk.Frame(root, bg="black", height=110)
     bottomPanel.pack(fill=tk.X)
-    buttons = ["Brightness", "Timer", "Take Picture", "Start/Stop Recording", "Back", "Media"]
+    buttonsPanel = tk.Frame(bottomPanel, bg="black", height=50)
+    buttonsPanel.pack(expand=True)
+
+    buttons = ["Back", "Camera Settings", "Take Picture", "Start Recording", "Gallery"]
     for btn_text in buttons:
-        tk.Button(bottomPanel, text=btn_text, bg="black", fg="white", font=("Arial", 12)).pack(side=tk.LEFT, padx=10)
+        tk.Button(buttonsPanel, text=btn_text, bg="black", fg="white", font=("Arial", 16), highlightthickness=5).pack(
+            side=tk.LEFT, padx=10, pady=10
+        )
 
     # Initialize the camera
     cap = cv2.VideoCapture(0)
 
-    # Explicitly set resolution if the camera supports it
+    # Set resolution if the camera supports it
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -105,7 +113,7 @@ def main():
     # Start the camera feed
     camera_feed(midPanel, cap, canvas)
 
-    # Graceful exit
+    # Exit
     def on_close():
         cap.release()
         cv2.destroyAllWindows()
