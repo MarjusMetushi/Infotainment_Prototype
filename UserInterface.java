@@ -191,7 +191,7 @@ public class UserInterface extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    new frontCamera();
+                    // try a processBuilder to run the python script
                 } catch (Exception e1) {
                     // For debugging
                 }

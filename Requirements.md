@@ -11,6 +11,8 @@ https://www.oracle.com/java/technologies/downloads/
 https://www.python.org/downloads/
 ### Dependencies/Libraries used:
 * Default python libraries
+* OpenCV - pip install opencv-python
+* TKinter - pip install tkinter
 ## Install c++
 https://www.bloodshed.net/
 ### Dependencies/Libraries used:
