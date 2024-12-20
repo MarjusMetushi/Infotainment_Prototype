@@ -1,15 +1,16 @@
-# Functions to be implemented
-# Brightness up and down
-# Timer to take a picture
-# Function to take a picture
-# Function to store the picture somewhere
-# Function to start recording and stop recording and then save it somewhere
+# Add an indicator anywhere on the screen to show that the camera is recording
 import cv2
 import tkinter as tk
 from datetime import datetime
 from PIL import Image, ImageTk
 import subprocess
+import os
+import threading
 
+# Initialize the camera
+cap = cv2.VideoCapture(0)
+filming = False
+out = None # hold the videowriter
 config = {}
 # fetch everything from config.properties
 with open("config.properties", "r") as file:
@@ -77,13 +78,12 @@ def update_time(timeLabel):
     timeLabel.config(text="Time: " + currentTime)
     timeLabel.after(1000, update_time, timeLabel)  # Update every second
 
-
 def main():
+    global filming
     # Set up main window
     root = tk.Tk()
     root.title("Front Camera")
     root.geometry("1280x720")
-    recording = False
     # Top Panel
     topPanel = tk.Frame(root, bg=backgroundColor, height=110)
     topPanel.pack(fill=tk.X)
@@ -116,19 +116,14 @@ def main():
             button.config(command=lambda: openCameraSettings())
         if btn_text == "Take Picture":
             button.config(command=lambda: takePicture())
-        if btn_text == "Record" and recording == False:
+        if btn_text == "Record" and filming is False:
             button.config(command=lambda: startRecording())
-            recording = True
             # and disable all buttons
         if btn_text == "Gallery":
             button.config(command=lambda: openGallery(root,cap))
-        if btn_text == "Record" and recording == True:
+        if btn_text == "Record" and filming is True:
             button.config(command=lambda: stopRecording())
-            recording = False
-
-        
-    # Initialize the camera
-    cap = cv2.VideoCapture(0)
+            
 
     # Set resolution if the camera supports it
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -154,23 +149,93 @@ def shutDown(root,cap):
     cap.release()
     cv2.destroyAllWindows()
     root.destroy()
-    
-def openCameraSettings():
-    # open a new canvas to let the user decide if they want higher brightness or lower brightness or hue or whatever
-    pass
 
 def takePicture():
-    # find a way to capture the frames and store them in the provided path
-    pass
+    global savePath
+    increment = 0
+    # check if camera is opened
+    if not cap.isOpened():
+        print("Error: Could not open camera.")
+        return
+    # read frame from camera
+    ret, frame = cap.read()
+    if ret:
+        # flip the frame horizontally
+        frame = cv2.flip(frame, 1)
+        # if the specified path does not exist, create it
+        if not os.path.exists(savePath):
+            os.makedirs(savePath)
+        # set the full file path and a unique identifier (increment)
+        filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+ "" + str(increment) + ".jpg"
+        increment += 1
+        # save the image to the specified path
+        fullpath = os.path.join(savePath, filename)
+        success = cv2.imwrite(fullpath, frame)
+        # debugging
+        if not success:
+            print("Error: Could not save image")
+        else:
+            print("Image saved successfully")
+    else:
+        print("Error: Could not capture image")
+    cv2.waitKey(0)
 
 def startRecording():
-    # find a way to start recording and keep track of the frames and when the recording stops then save them in the provided path
-    pass
+    global filming, out, savePath
+    increment = 0
+    if not os.path.exists(savePath):
+        os.makedirs(savePath)
+
+    # Set the video file path
+    filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + f"_{increment}.avi"
+    fullpath = os.path.join(savePath, filename)
+
+    # Initialize VideoWriter
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = 24
+    out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
+
+    if not out.isOpened():
+        print("Error: VideoWriter could not be opened.")
+        return
+
+    filming = True
+    print("Recording started.")
+    
+    # Start recording in a separate thread
+    thread = threading.Thread(target=recordFrames)
+    thread.daemon = True
+    thread.start()
+
+def recordFrames():
+    global filming, out
+    try:
+        while filming:
+            ret, frame = cap.read()
+            if not ret:
+                print("Error: Failed to read frame.")
+                break
+
+            # Flip and write the frame
+            frame = cv2.flip(frame, 1)
+            out.write(frame)
+    except Exception as e:
+        print(f"Error during recording: {e}")
+    finally:
+        print("Exiting recording loop.")
 
 def stopRecording():
-    # find a way to stop recording and save it in the provided path
-    pass
-
+    global filming, out
+    if filming:
+        filming = False
+        if out:
+            out.release()
+            print("Recording stopped.")
+        else:
+            print("Error: VideoWriter was not initialized.")
+    else:
+        print("Recording is not active.")
 
 def openGallery(root,cap):
     command = ["java", "-cp", "C:/Users/mariu/Desktop/project", "GalleryWrapper"]
@@ -189,10 +254,16 @@ def openGallery(root,cap):
     # Making sure the process is closed after completion
     except subprocess.TimeoutExpired:
         print("The Java process took too long to finish.")
-        process.kill()  # Optionally kill the process if it takes too long (the maximal timeout of half a second)
+        process.kill()  # kill the process if it takes too long (the maximal timeout of half a second)
         shutDown(root,cap)
+        # debugging
     except Exception as e:
         print(f"Error launching java process: {e}")
 
+def openCameraSettings():
+    # open a new canvas to let the user decide if they want higher brightness or lower brightness or hue or whatever
+    pass
+
+# main function
 if __name__ == "__main__":
     main()
