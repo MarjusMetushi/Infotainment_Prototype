@@ -1,4 +1,4 @@
-# Add an indicator anywhere on the screen to show that the camera is recording
+# add a timer and refactor the code and improve the gui
 import cv2
 import tkinter as tk
 from datetime import datetime
@@ -23,6 +23,10 @@ foregroundColor = config.get("foregroundColor")
 borderColor1 = config.get("borderColor1")
 borderColor2 = config.get("borderColor2")
 savePath = config.get("GalleryPath")
+
+brightness = 40
+contrast = 40
+saturation = 40
 
 
 def calculate_new_dimensions(frame_width, frame_height, target_width, target_height):
@@ -75,7 +79,10 @@ def camera_feed(midPanel, cap, canvas):
 
 def update_time(timeLabel):
     currentTime = datetime.now().strftime("%H:%M:%S")
-    timeLabel.config(text="Time: " + currentTime)
+    if filming:
+        timeLabel.config(text="Time: " + currentTime + " | Recording")
+    else:
+        timeLabel.config(text="Time: " + currentTime)
     timeLabel.after(1000, update_time, timeLabel)  # Update every second
 
 def main():
@@ -105,6 +112,9 @@ def main():
     buttonsPanel = tk.Frame(bottomPanel, bg=backgroundColor, height=50)
     buttonsPanel.pack(expand=True)
 
+    recIndicator = tk.Label(bottomPanel, text="", bg=backgroundColor, fg="white", font=("Arial", 16))
+    recIndicator.pack(pady=20)
+
     buttons = ["Back", "Camera Settings", "Take Picture", "Record", "Gallery"]
     for btn_text in buttons:
         button = tk.Button(buttonsPanel, text=btn_text, bg=backgroundColor, fg="white", font=("Arial", 16), highlightthickness=5)
@@ -113,16 +123,13 @@ def main():
         if btn_text == "Back":
             button.config(command=lambda: shutDown(root, cap))
         if btn_text == "Camera Settings":
-            button.config(command=lambda: openCameraSettings())
+            button.config(command=lambda: openCameraSettings(root))
         if btn_text == "Take Picture":
             button.config(command=lambda: takePicture())
-        if btn_text == "Record" and filming is False:
-            button.config(command=lambda: startRecording())
-            # and disable all buttons
+        if btn_text == "Record":
+            button.config(command=lambda: toggleRecording(timeLabel))
         if btn_text == "Gallery":
             button.config(command=lambda: openGallery(root,cap))
-        if btn_text == "Record" and filming is True:
-            button.config(command=lambda: stopRecording())
             
 
     # Set resolution if the camera supports it
@@ -149,6 +156,16 @@ def shutDown(root,cap):
     cap.release()
     cv2.destroyAllWindows()
     root.destroy()
+
+def toggleRecording(timeLabel):
+    global filming
+    update_time(timeLabel)
+    if filming:
+        stopRecording()
+    else:
+        startRecording()
+    
+
 
 def takePicture():
     global savePath
@@ -183,30 +200,33 @@ def takePicture():
 def startRecording():
     global filming, out, savePath
     increment = 0
-    if not os.path.exists(savePath):
-        os.makedirs(savePath)
+    if filming is False:
+        if not os.path.exists(savePath):
+            os.makedirs(savePath)
 
-    # Set the video file path
-    filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + f"_{increment}.avi"
-    fullpath = os.path.join(savePath, filename)
+        # Set the video file path
+        filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + f"_{increment}.avi"
+        fullpath = os.path.join(savePath, filename)
 
-    # Initialize VideoWriter
-    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = 24
-    out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
+        # Initialize VideoWriter
+        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = 24
+        out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
 
-    if not out.isOpened():
-        print("Error: VideoWriter could not be opened.")
-        return
+        if not out.isOpened():
+            print("Error: VideoWriter could not be opened.")
+            return
 
-    filming = True
-    print("Recording started.")
-    
-    # Start recording in a separate thread
-    thread = threading.Thread(target=recordFrames)
-    thread.daemon = True
-    thread.start()
+        filming = True
+        print(filming)
+        
+        # Start recording in a separate thread
+        thread = threading.Thread(target=recordFrames)
+        thread.daemon = True
+        thread.start()
+    else :
+        stopRecording()
 
 def recordFrames():
     global filming, out
@@ -229,6 +249,7 @@ def stopRecording():
     global filming, out
     if filming:
         filming = False
+        print(filming)
         if out:
             out.release()
             print("Recording stopped.")
@@ -236,6 +257,7 @@ def stopRecording():
             print("Error: VideoWriter was not initialized.")
     else:
         print("Recording is not active.")
+    
 
 def openGallery(root,cap):
     command = ["java", "-cp", "C:/Users/mariu/Desktop/project", "GalleryWrapper"]
@@ -260,9 +282,80 @@ def openGallery(root,cap):
     except Exception as e:
         print(f"Error launching java process: {e}")
 
-def openCameraSettings():
-    # open a new canvas to let the user decide if they want higher brightness or lower brightness or hue or whatever
-    pass
+def openCameraSettings(root):
+    global brightness, contrast, saturation
+
+    # Create a new Toplevel window
+    settingsWindow = tk.Toplevel(root)
+    settingsWindow.title("Camera Settings")
+    settingsWindow.geometry("300x450")
+    settingsWindow.configure(bg=backgroundColor)
+
+    # Add a title label to the settings window
+    titleLabel = tk.Label(
+        settingsWindow,
+        text="Camera Settings",
+        bg=backgroundColor,
+        fg="white",
+        font=("Arial", 18, "bold")
+    )
+    titleLabel.pack(pady=10)
+
+    # Define button labels and actions
+    buttons = [
+        ("Brightness +", lambda: adjust_settings("brightness", 10)),
+        ("Brightness -", lambda: adjust_settings("brightness", -10)),
+        ("Contrast +", lambda: adjust_settings("contrast", 10)),
+        ("Contrast -", lambda: adjust_settings("contrast", -10)),
+        ("Saturation +", lambda: adjust_settings("saturation", 10)),
+        ("Saturation -", lambda: adjust_settings("saturation", -10)),
+        ("Reset", lambda: ResetSettings()),
+        ("Close", settingsWindow.destroy),
+    ]
+
+    # Create buttons and attach actions
+    for btn_text, action in buttons:
+        button = tk.Button(
+            settingsWindow,
+            text=btn_text,
+            bg=backgroundColor,
+            fg="white",
+            font=("Arial", 14),
+            command=action
+        )
+        button.pack(pady=5, fill=tk.X, padx=20)
+        print(f"Button '{btn_text}' added.")  # Debugging
+
+    # Prevent interaction with the main window while settings are open
+    settingsWindow.transient(root)
+    settingsWindow.grab_set()
+
+
+# Helper function to adjust settings
+def adjust_settings(setting, value):
+    global brightness, contrast, saturation
+
+    if setting == "brightness":
+        brightness += value
+    elif setting == "contrast":
+        contrast += value
+    elif setting == "saturation":
+        saturation += value
+
+    # Apply the settings to the camera (if necessary)
+    ApplySettings()
+
+def ResetSettings():
+    global brightness, contrast, saturation
+    brightness = 50
+    contrast = 50
+    saturation = 50
+    ApplySettings()
+
+def ApplySettings():
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
+    cap.set(cv2.CAP_PROP_CONTRAST, contrast)
+    cap.set(cv2.CAP_PROP_SATURATION, saturation)
 
 # main function
 if __name__ == "__main__":
