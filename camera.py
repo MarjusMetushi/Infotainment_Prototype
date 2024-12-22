@@ -1,11 +1,12 @@
-# add a timer and refactor the code and improve the gui
+# update the timer variable and improve the gui of the camera settings
+# add a timer to the take picture method or a wait method or something before taking the picture or recording
 import cv2
 import tkinter as tk
-from datetime import datetime
-from PIL import Image, ImageTk
 import subprocess
 import os
 import threading
+from datetime import datetime
+from PIL import Image, ImageTk
 
 # Initialize the camera
 cap = cv2.VideoCapture(0)
@@ -24,11 +25,13 @@ borderColor1 = config.get("borderColor1")
 borderColor2 = config.get("borderColor2")
 savePath = config.get("GalleryPath")
 
+# default values
 brightness = 40
 contrast = 40
 saturation = 40
+timer = 0
 
-
+# helper function to calculate new dimensions for the canvas
 def calculate_new_dimensions(frame_width, frame_height, target_width, target_height):
     aspect_ratio = frame_width / frame_height
     if target_width / target_height > aspect_ratio:
@@ -42,7 +45,7 @@ def calculate_new_dimensions(frame_width, frame_height, target_width, target_hei
 
     return new_width, new_height
 
-
+# helper function to update the camera feed
 def camera_feed(midPanel, cap, canvas):
     ret, frame = cap.read()
     if ret:
@@ -66,17 +69,17 @@ def camera_feed(midPanel, cap, canvas):
         # Convert BGR to RGB
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # Convert to Tkinter-compatible image
+        # Convert to Tkinter compatible image
         img = ImageTk.PhotoImage(Image.fromarray(frame))
 
         # Update canvas
         canvas.create_image(0, 0, anchor=tk.NW, image=img)
-        canvas.image = img  # Keep a reference to avoid garbage collection
+        canvas.image = img  # Avoid garbage collection
 
     # Schedule the next frame
     midPanel.after(10, camera_feed, midPanel, cap, canvas)
 
-
+# helper function to update the time label
 def update_time(timeLabel):
     currentTime = datetime.now().strftime("%H:%M:%S")
     if filming:
@@ -85,6 +88,7 @@ def update_time(timeLabel):
         timeLabel.config(text="Time: " + currentTime)
     timeLabel.after(1000, update_time, timeLabel)  # Update every second
 
+# main method
 def main():
     global filming
     # Set up main window
@@ -111,15 +115,15 @@ def main():
     bottomPanel.pack(fill=tk.X)
     buttonsPanel = tk.Frame(bottomPanel, bg=backgroundColor, height=50)
     buttonsPanel.pack(expand=True)
-
+    # indicator for recording
     recIndicator = tk.Label(bottomPanel, text="", bg=backgroundColor, fg="white", font=("Arial", 16))
     recIndicator.pack(pady=20)
-
+    # buttons
     buttons = ["Back", "Camera Settings", "Take Picture", "Record", "Gallery"]
     for btn_text in buttons:
         button = tk.Button(buttonsPanel, text=btn_text, bg=backgroundColor, fg="white", font=("Arial", 16), highlightthickness=5)
-        button.pack(side=tk.LEFT, padx=10, pady=10)
-
+        button.pack(side=tk.LEFT, padx=10, pady=50)
+        # map functions to buttons
         if btn_text == "Back":
             button.config(command=lambda: shutDown(root, cap))
         if btn_text == "Camera Settings":
@@ -152,11 +156,13 @@ def main():
     root.protocol("WM_DELETE_WINDOW", on_close)
     root.mainloop()
 
+# helper function to shut down the program
 def shutDown(root,cap):
     cap.release()
     cv2.destroyAllWindows()
     root.destroy()
 
+# helper function to toggle recording
 def toggleRecording(timeLabel):
     global filming
     update_time(timeLabel)
@@ -164,9 +170,8 @@ def toggleRecording(timeLabel):
         stopRecording()
     else:
         startRecording()
-    
 
-
+# helper function to take a picture
 def takePicture():
     global savePath
     increment = 0
@@ -197,6 +202,7 @@ def takePicture():
         print("Error: Could not capture image")
     cv2.waitKey(0)
 
+# helper function to start recording
 def startRecording():
     global filming, out, savePath
     increment = 0
@@ -214,13 +220,13 @@ def startRecording():
         fps = 24
         out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
 
+        # check if video writer is opened
         if not out.isOpened():
             print("Error: VideoWriter could not be opened.")
             return
-
+        # set recording flag
         filming = True
-        print(filming)
-        
+
         # Start recording in a separate thread
         thread = threading.Thread(target=recordFrames)
         thread.daemon = True
@@ -228,6 +234,7 @@ def startRecording():
     else :
         stopRecording()
 
+# helper function to record frames
 def recordFrames():
     global filming, out
     try:
@@ -245,11 +252,11 @@ def recordFrames():
     finally:
         print("Exiting recording loop.")
 
+# helper function to stop recording
 def stopRecording():
     global filming, out
     if filming:
         filming = False
-        print(filming)
         if out:
             out.release()
             print("Recording stopped.")
@@ -258,9 +265,9 @@ def stopRecording():
     else:
         print("Recording is not active.")
     
-
+# helper function to open the gallery(a java class by calling the wrapper)
 def openGallery(root,cap):
-    command = ["java", "-cp", "C:/Users/mariu/Desktop/project", "GalleryWrapper"]
+    command = ["java", "-cp", ".", "GalleryWrapper"]
     try:
         # Launch the Java process
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -282,6 +289,7 @@ def openGallery(root,cap):
     except Exception as e:
         print(f"Error launching java process: {e}")
 
+# helper function to open the camera settings
 def openCameraSettings(root):
     global brightness, contrast, saturation
 
@@ -309,6 +317,8 @@ def openCameraSettings(root):
         ("Contrast -", lambda: adjust_settings("contrast", -10)),
         ("Saturation +", lambda: adjust_settings("saturation", 10)),
         ("Saturation -", lambda: adjust_settings("saturation", -10)),
+        ("Timing", lambda: toggleTimer()),
+        ("Start timer", lambda: startTimer()),
         ("Reset", lambda: ResetSettings()),
         ("Close", settingsWindow.destroy),
     ]
@@ -330,6 +340,13 @@ def openCameraSettings(root):
     settingsWindow.transient(root)
     settingsWindow.grab_set()
 
+# helper function to start the timer
+def startTimer():
+    global timer
+    pass
+# helper function to change the timer before taking the picture
+def toggleTimer():
+    pass
 
 # Helper function to adjust settings
 def adjust_settings(setting, value):
@@ -345,6 +362,7 @@ def adjust_settings(setting, value):
     # Apply the settings to the camera (if necessary)
     ApplySettings()
 
+# helper function to reset the settings
 def ResetSettings():
     global brightness, contrast, saturation
     brightness = 50
@@ -352,6 +370,7 @@ def ResetSettings():
     saturation = 50
     ApplySettings()
 
+# helper function to apply the settings to the camera
 def ApplySettings():
     cap.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
     cap.set(cv2.CAP_PROP_CONTRAST, contrast)
