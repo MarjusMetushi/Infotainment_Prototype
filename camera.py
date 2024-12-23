@@ -1,10 +1,10 @@
-# update the timer variable and improve the gui of the camera settings
-# add a timer to the take picture method or a wait method or something before taking the picture or recording
+# refactor the code
 import cv2
 import tkinter as tk
 import subprocess
 import os
 import threading
+import time
 from datetime import datetime
 from PIL import Image, ImageTk
 
@@ -13,6 +13,10 @@ cap = cv2.VideoCapture(0)
 filming = False
 out = None # hold the videowriter
 config = {}
+openSettings = False
+settingsPanel = None
+timer_running = False
+
 # fetch everything from config.properties
 with open("config.properties", "r") as file:
     for line in file:
@@ -30,6 +34,7 @@ brightness = 40
 contrast = 40
 saturation = 40
 timer = 0
+times = [0,3000,5000,7000,10000]
 
 # helper function to calculate new dimensions for the canvas
 def calculate_new_dimensions(frame_width, frame_height, target_width, target_height):
@@ -90,7 +95,8 @@ def update_time(timeLabel):
 
 # main method
 def main():
-    global filming
+    global filming, openSettings, openSettings, settingsPanel, times, timer
+    settingsPanel = None
     # Set up main window
     root = tk.Tk()
     root.title("Front Camera")
@@ -118,24 +124,26 @@ def main():
     # indicator for recording
     recIndicator = tk.Label(bottomPanel, text="", bg=backgroundColor, fg="white", font=("Arial", 16))
     recIndicator.pack(pady=20)
+    # indicator for the timer
+    timerIndicator = tk.Label(topPanel, text="", bg=backgroundColor, fg="white", font=("Arial", 16))
+    timerIndicator.pack(pady=0)
     # buttons
     buttons = ["Back", "Camera Settings", "Take Picture", "Record", "Gallery"]
     for btn_text in buttons:
         button = tk.Button(buttonsPanel, text=btn_text, bg=backgroundColor, fg="white", font=("Arial", 16), highlightthickness=5)
-        button.pack(side=tk.LEFT, padx=10, pady=50)
+        button.pack(side=tk.LEFT, padx=10, pady=5)
         # map functions to buttons
         if btn_text == "Back":
             button.config(command=lambda: shutDown(root, cap))
         if btn_text == "Camera Settings":
-            button.config(command=lambda: openCameraSettings(root))
+            button.config(command=lambda: openCameraSettings(root, buttonsPanel, timerIndicator))
         if btn_text == "Take Picture":
-            button.config(command=lambda: takePicture())
+            button.config(command=lambda: takePicture(timerIndicator))
         if btn_text == "Record":
-            button.config(command=lambda: toggleRecording(timeLabel))
+            button.config(command=lambda: toggleRecording(timeLabel, timerIndicator))
         if btn_text == "Gallery":
             button.config(command=lambda: openGallery(root,cap))
             
-
     # Set resolution if the camera supports it
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -163,76 +171,97 @@ def shutDown(root,cap):
     root.destroy()
 
 # helper function to toggle recording
-def toggleRecording(timeLabel):
+def toggleRecording(timeLabel, timerIndicator):
     global filming
     update_time(timeLabel)
     if filming:
         stopRecording()
     else:
-        startRecording()
+        startRecording(timerIndicator)
 
 # helper function to take a picture
-def takePicture():
-    global savePath
-    increment = 0
-    # check if camera is opened
-    if not cap.isOpened():
-        print("Error: Could not open camera.")
-        return
-    # read frame from camera
-    ret, frame = cap.read()
-    if ret:
-        # flip the frame horizontally
-        frame = cv2.flip(frame, 1)
-        # if the specified path does not exist, create it
-        if not os.path.exists(savePath):
-            os.makedirs(savePath)
-        # set the full file path and a unique identifier (increment)
-        filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+ "" + str(increment) + ".jpg"
-        increment += 1
-        # save the image to the specified path
-        fullpath = os.path.join(savePath, filename)
-        success = cv2.imwrite(fullpath, frame)
-        # debugging
-        if not success:
-            print("Error: Could not save image")
-        else:
-            print("Image saved successfully")
-    else:
-        print("Error: Could not capture image")
-    cv2.waitKey(0)
-
-# helper function to start recording
-def startRecording():
-    global filming, out, savePath
-    increment = 0
-    if filming is False:
-        if not os.path.exists(savePath):
-            os.makedirs(savePath)
-
-        # Set the video file path
-        filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + f"_{increment}.avi"
-        fullpath = os.path.join(savePath, filename)
-
-        # Initialize VideoWriter
-        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps = 24
-        out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
-
-        # check if video writer is opened
-        if not out.isOpened():
-            print("Error: VideoWriter could not be opened.")
+def takePicture(timerIndicator):
+    global savePath, timer_running
+    def capture():
+        timerIndicator.config(text="")
+        increment = 0
+        # check if camera is opened
+        if not cap.isOpened():
+            print("Error: Could not open camera.")
             return
-        # set recording flag
-        filming = True
+        # read frame from camera
+        ret, frame = cap.read()
+        if ret:
+            # flip the frame horizontally
+            frame = cv2.flip(frame, 1)
+            # if the specified path does not exist, create it
+            if not os.path.exists(savePath):
+                os.makedirs(savePath)
+            # set the full file path and a unique identifier (increment)
+            filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+ "" + str(increment) + ".jpg"
+            increment += 1
+            # save the image to the specified path
+            fullpath = os.path.join(savePath, filename)
+            success = cv2.imwrite(fullpath, frame)
+            # debugging
+            if not success:
+                print("Error: Could not save image")
+            else:
+                print("Image saved successfully")
+        else:
+            print("Error: Could not capture image")
+        cv2.waitKey(0)
+    if times[timer] > 0 and not timer_running:
+        startTimer(timerIndicator, capture)
+        return
+    else:
+        capture()
 
-        # Start recording in a separate thread
-        thread = threading.Thread(target=recordFrames)
-        thread.daemon = True
-        thread.start()
-    else :
-        stopRecording()
+# Helper function to start recording
+def startRecording(timerIndicator):
+    global filming, out, savePath, timer_running, timer
+
+    increment = 0  # Initialize or update increment
+
+    # Function to start the recording process
+    def capture():
+        global filming, out
+        if not filming:
+            if not os.path.exists(savePath):
+                os.makedirs(savePath)
+
+            # Set the video file path
+            filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + f"_{increment}.avi"
+            fullpath = os.path.join(savePath, filename)
+
+            # Initialize VideoWriter
+            frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = 24
+            out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
+
+            # Check if video writer is opened
+            if not out.isOpened():
+                print("Error: VideoWriter could not be opened.")
+                return
+
+            # Set the recording flag
+            filming = True
+            timerIndicator.config(text="")
+
+            # Start recording in a separate thread
+            thread = threading.Thread(target=recordFrames)
+            thread.daemon = True
+            thread.start()
+        else:
+            stopRecording()
+
+    # Start the timer if necessary, or execute immediately
+    if times[timer] > 0 and not timer_running:
+        startTimer(timerIndicator, capture)  # Pass the `capture` function to `startTimer`
+    else:
+        capture()
+
 
 # helper function to record frames
 def recordFrames():
@@ -290,63 +319,53 @@ def openGallery(root,cap):
         print(f"Error launching java process: {e}")
 
 # helper function to open the camera settings
-def openCameraSettings(root):
-    global brightness, contrast, saturation
+def openCameraSettings(root, buttonsPanel, timerIndicator):
+    global openSettings, settingsPanel
 
-    # Create a new Toplevel window
-    settingsWindow = tk.Toplevel(root)
-    settingsWindow.title("Camera Settings")
-    settingsWindow.geometry("300x450")
-    settingsWindow.configure(bg=backgroundColor)
+    if openSettings:
+        settingsPanel.destroy()  # Remove the panel
+        settingsPanel = None
+        openSettings = False
+        print("Settings panel hidden.")
+    else:
+        settingsPanel = tk.Frame(root, bg=backgroundColor, height=50, width=720, highlightthickness=0)
+        settingsPanel.pack(side=tk.TOP, pady=5, fill=tk.BOTH, before=buttonsPanel)  # Place above buttonsPanel
 
-    # Add a title label to the settings window
-    titleLabel = tk.Label(
-        settingsWindow,
-        text="Camera Settings",
-        bg=backgroundColor,
-        fg="white",
-        font=("Arial", 18, "bold")
-    )
-    titleLabel.pack(pady=10)
+        # Define button labels and actions
+        buttons = [
+            ("Brightness +", lambda: adjust_settings("brightness", 10)),
+            ("Brightness -", lambda: adjust_settings("brightness", -10)),
+            ("Contrast +", lambda: adjust_settings("contrast", 10)),
+            ("Contrast -", lambda: adjust_settings("contrast", -10)),
+            ("Saturation +", lambda: adjust_settings("saturation", 10)),
+            ("Saturation -", lambda: adjust_settings("saturation", -10)),
+            ("Timer toggle", lambda: toggleTimer(timerIndicator)),
+            ("Reset", lambda: ResetSettings()),
+        ]
 
-    # Define button labels and actions
-    buttons = [
-        ("Brightness +", lambda: adjust_settings("brightness", 10)),
-        ("Brightness -", lambda: adjust_settings("brightness", -10)),
-        ("Contrast +", lambda: adjust_settings("contrast", 10)),
-        ("Contrast -", lambda: adjust_settings("contrast", -10)),
-        ("Saturation +", lambda: adjust_settings("saturation", 10)),
-        ("Saturation -", lambda: adjust_settings("saturation", -10)),
-        ("Timing", lambda: toggleTimer()),
-        ("Start timer", lambda: startTimer()),
-        ("Reset", lambda: ResetSettings()),
-        ("Close", settingsWindow.destroy),
-    ]
+        # Add buttons to the grid layout
+        for col, (btn_text, action) in enumerate(buttons):
+            button = tk.Button(
+                settingsPanel,
+                text=btn_text,
+                bg=backgroundColor,
+                fg="white",
+                font=("Arial", 10),
+                command=action
+            )
+            button.grid(row=0, column=col, padx=5, pady=5)
+        openSettings = True
+        print("Settings panel shown.")
 
-    # Create buttons and attach actions
-    for btn_text, action in buttons:
-        button = tk.Button(
-            settingsWindow,
-            text=btn_text,
-            bg=backgroundColor,
-            fg="white",
-            font=("Arial", 14),
-            command=action
-        )
-        button.pack(pady=5, fill=tk.X, padx=20)
-        print(f"Button '{btn_text}' added.")  # Debugging
-
-    # Prevent interaction with the main window while settings are open
-    settingsWindow.transient(root)
-    settingsWindow.grab_set()
-
-# helper function to start the timer
-def startTimer():
+# helper function to change the timer before taking the picture or recording
+def toggleTimer(timerIndicator):
     global timer
-    pass
-# helper function to change the timer before taking the picture
-def toggleTimer():
-    pass
+    timer = (timer + 1) % len(times)
+    if times[timer] > 0:
+        timerIndicator.config(text=f"Timer: {times[timer] / 1000} s")
+    else:
+        timerIndicator.config(text="")
+    
 
 # Helper function to adjust settings
 def adjust_settings(setting, value):
@@ -375,6 +394,32 @@ def ApplySettings():
     cap.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
     cap.set(cv2.CAP_PROP_CONTRAST, contrast)
     cap.set(cv2.CAP_PROP_SATURATION, saturation)
+
+def startTimer(timerIndicator, callback):
+    global timer, times, timer_running
+    if times[timer] > 0 and not timer_running:
+        timer_running = True
+        countdown_seconds = times[timer] // 1000
+        updateCountdown(timerIndicator, countdown_seconds, callback)
+    else:
+        # If no timer is set, execute the callback immediately
+        callback()
+
+
+def updateCountdown(timerIndicator, seconds, callback):
+    global timer_running
+    if seconds > 0:
+        timerIndicator.config(text=f"Time remaining: {seconds} s")
+        # Schedule the next countdown step
+        timerIndicator.after(1000, updateCountdown, timerIndicator, seconds - 1, callback)
+    else:
+        timerIndicator.config(text="Timer finished!")
+        timer_running = False
+        print("Timer finished.")
+        if callback:
+            callback()  # Execute the callback when the timer ends
+
+
 
 # main function
 if __name__ == "__main__":
