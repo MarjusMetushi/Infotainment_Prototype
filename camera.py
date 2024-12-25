@@ -1,4 +1,3 @@
-# refactor the code
 import cv2
 import tkinter as tk
 import subprocess
@@ -22,7 +21,7 @@ with open("config.properties", "r") as file:
     for line in file:
         key, value = line.split("=",1)
         config[key.strip()] = value.strip()
-
+# assign the values to the variables
 backgroundColor = config.get("backgroundColor")
 foregroundColor = config.get("foregroundColor")
 borderColor1 = config.get("borderColor1")
@@ -211,6 +210,7 @@ def takePicture(timerIndicator):
         else:
             print("Error: Could not capture image")
         cv2.waitKey(0)
+    # if the timer is set and running, start the timer method
     if times[timer] > 0 and not timer_running:
         startTimer(timerIndicator, capture)
         return
@@ -237,7 +237,7 @@ def startRecording(timerIndicator):
             # Initialize VideoWriter
             frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = 24
+            fps = 60
             out = cv2.VideoWriter(fullpath, 0, fps, (frame_width, frame_height))
 
             # Check if video writer is opened
@@ -321,7 +321,7 @@ def openGallery(root,cap):
 # helper function to open the camera settings
 def openCameraSettings(root, buttonsPanel, timerIndicator):
     global openSettings, settingsPanel
-
+    # if the settings panel is open, close it
     if openSettings:
         settingsPanel.destroy()  # Remove the panel
         settingsPanel = None
@@ -366,7 +366,6 @@ def toggleTimer(timerIndicator):
     else:
         timerIndicator.config(text="")
     
-
 # Helper function to adjust settings
 def adjust_settings(setting, value):
     global brightness, contrast, saturation
@@ -395,6 +394,7 @@ def ApplySettings():
     cap.set(cv2.CAP_PROP_CONTRAST, contrast)
     cap.set(cv2.CAP_PROP_SATURATION, saturation)
 
+# method to start the timer
 def startTimer(timerIndicator, callback):
     global timer, times, timer_running
     if times[timer] > 0 and not timer_running:
@@ -405,7 +405,7 @@ def startTimer(timerIndicator, callback):
         # If no timer is set, execute the callback immediately
         callback()
 
-
+# method to update the countdown timer
 def updateCountdown(timerIndicator, seconds, callback):
     global timer_running
     if seconds > 0:
@@ -418,8 +418,6 @@ def updateCountdown(timerIndicator, seconds, callback):
         print("Timer finished.")
         if callback:
             callback()  # Execute the callback when the timer ends
-
-
 
 # main function
 if __name__ == "__main__":
