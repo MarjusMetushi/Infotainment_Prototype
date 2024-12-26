@@ -303,6 +303,12 @@ public class UserInterface extends JFrame {
                 new Gallery();
             }
         });
+        dashboard.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new dashboard();
+            }
+        });
         //Customizing the buttons
         CustomizeButtons(maps);
         CustomizeButtons(media);
