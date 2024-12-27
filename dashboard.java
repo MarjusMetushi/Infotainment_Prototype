@@ -2,7 +2,8 @@ import java.io.*;
 import java.util.Properties;
 import java.awt.*;
 import javax.swing.*;
-
+// Fix the fuelBar positioning
+// Improve the GUI
 public class dashboard {
     // Variable declaration
     Properties config = new Properties();
@@ -37,13 +38,16 @@ public class dashboard {
     // values
     int currentSpeed = 0;
     int currentRpm = 0;
-    int currentFuelLevel = 0;
+    int currentFuelLevel = 40;
     char gear = 0;
     int engineTemp = 0;
 
     // Theme array
     int currentTheme = 0;
     String[] themes = {"black and red", "black and blue", "white and red", "white and blue"};
+    // Get the light indicators
+    ImageIcon leftIndicator = new ImageIcon("carIndicators\\leftIndicator.png");
+    ImageIcon rightIndicator = new ImageIcon("carIndicators\\rightIndicator.png");
 
     dashboard() {
         // Call the method to load the config
@@ -111,12 +115,7 @@ public class dashboard {
         leftmidPanel.setPreferredSize(new Dimension(200,750));
         rightmidPanel.setPreferredSize(new Dimension(200,750));
         centermidPanel.setPreferredSize(new Dimension(800,750));
-        /*
-        // TODO: make the light indicators
-        leftmidPanel.add(bottomCMPanel, new lightIndicators());
-        //Turn this the opposite side
-        rightmidPanel.add(bottomCMPanel, new lightIndicators());
-        */
+        
         // Customize the middle panel
         middlePanel.setBackground(backgroundColor);
         middlePanel.setForeground(foregroundColor);
@@ -164,7 +163,8 @@ public class dashboard {
         midleftCMPanel.add(new SemiCircularSpeedometer(currentSpeed));
         midrightCMPanel.add(new SemiCircularRPMMeter(currentRpm));
         // TODO: add fuel level bar
-        // bottomCMPanel.add(bottomCMPanel, new fuelLevelBar());
+        fuelLevelPanel.add(new FuelBarPanel(currentFuelLevel));
+        bottomCMPanel.add(fuelLevelPanel);
         centermidPanel.add(topCMPanel, BorderLayout.NORTH);
         centermidPanel.add(midleftCMPanel, BorderLayout.WEST);
         centermidPanel.add(midrightCMPanel, BorderLayout.EAST);
