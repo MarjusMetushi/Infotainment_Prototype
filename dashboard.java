@@ -1,14 +1,3 @@
-/* 
- * Features:
- * time and date
- * display current gear
- * light indicators
- * Speed
- * Temperature of the engine
- * rpm
- * fuel level
- */
-
 import java.io.*;
 import java.util.Properties;
 import java.awt.*;
@@ -41,6 +30,20 @@ public class dashboard {
     JPanel gearPanel = new JPanel();
     JPanel engineTempPanel = new JPanel();
     JPanel fuelLevelPanel = new JPanel();
+    
+    // Dialog val
+    JDialog dialog;
+
+    // values
+    int currentSpeed = 0;
+    int currentRpm = 0;
+    int currentFuelLevel = 0;
+    char gear = 0;
+    int engineTemp = 0;
+
+    // Theme array
+    int currentTheme = 0;
+    String[] themes = {"black and red", "black and blue", "white and red", "white and blue"};
 
     dashboard() {
         // Call the method to load the config
@@ -52,7 +55,7 @@ public class dashboard {
                 ? Color.decode(config.getProperty("borderColor1"))
                 : Color.decode(config.getProperty("borderColor2"));
         // Set up the dialog
-        JDialog dialog = new JDialog();
+        dialog = new JDialog();
         dialog.setTitle("Dashboard");
         dialog.setSize(1280, 720);
         dialog.setLayout(new BorderLayout());
@@ -103,36 +106,97 @@ public class dashboard {
     }
     // public method to set up the middle panel
     public void customizeMiddlePanel() {
+
         // set mid panels size
         leftmidPanel.setPreferredSize(new Dimension(200,750));
-        rightmidPanel.setPreferredSize(new Dimension(800,750));
-        centermidPanel.setPreferredSize(new Dimension(200,750));
+        rightmidPanel.setPreferredSize(new Dimension(200,750));
+        centermidPanel.setPreferredSize(new Dimension(800,750));
+        /*
+        // TODO: make the light indicators
+        leftmidPanel.add(bottomCMPanel, new lightIndicators());
+        //Turn this the opposite side
+        rightmidPanel.add(bottomCMPanel, new lightIndicators());
+        */
         // Customize the middle panel
         middlePanel.setBackground(backgroundColor);
         middlePanel.setForeground(foregroundColor);
+        
+        // Add the components to the centermid panel
+        centermidPanel.add(topCMPanel, BorderLayout.NORTH);
+        centermidPanel.add(bottomCMPanel, BorderLayout.SOUTH);
+        centermidPanel.add(midleftCMPanel, BorderLayout.WEST);
+        centermidPanel.add(midrightCMPanel, BorderLayout.EAST);
+
         // Add the left side of the middle panel
-        leftmidPanel.setBackground(backgroundColor);
+        leftmidPanel.setBackground(Color.BLUE);
         middlePanel.add(leftmidPanel, BorderLayout.WEST);
-        // Add the right side of the middle panel
-        leftmidPanel.setBackground(Color.YELLOW);
-        middlePanel.add(rightmidPanel, BorderLayout.EAST);
+
         // Add the center of the middle panel
         centermidPanel.setBackground(Color.GREEN);
         middlePanel.add(centermidPanel, BorderLayout.CENTER);
 
+        // Add the right side of the middle panel
+        rightmidPanel.setBackground(Color.RED);
+        middlePanel.add(rightmidPanel, BorderLayout.EAST);
+        
+        // Set panel sizes
+        topCMPanel.setPreferredSize(new Dimension(800,200));
+        bottomCMPanel.setPreferredSize(new Dimension(800,200));
+        midleftCMPanel.setPreferredSize(new Dimension(300,200));
+        midrightCMPanel.setPreferredSize(new Dimension(300,200));
+        
+        // Set colors
+        fuelLevelPanel.setBackground(backgroundColor);
+        gearPanel.setBackground(backgroundColor);
+        engineTempPanel.setBackground(backgroundColor);
+        midleftCMPanel.setBackground(backgroundColor);
+        midrightCMPanel.setBackground(backgroundColor);
+
+        //Test
+        gearPanel.setPreferredSize(new Dimension(200,200));
+        engineTempPanel.setPreferredSize(new Dimension(200,200));
+        fuelLevelPanel.setPreferredSize(new Dimension(200,200));
+
+        // Add everything together
+        topCMPanel.add(gearPanel);
+        topCMPanel.add(engineTempPanel);
+        bottomCMPanel.add(fuelLevelPanel);
+        midleftCMPanel.add(new SemiCircularSpeedometer(currentSpeed));
+        midrightCMPanel.add(new SemiCircularRPMMeter(currentRpm));
+        // TODO: add fuel level bar
+        // bottomCMPanel.add(bottomCMPanel, new fuelLevelBar());
+        centermidPanel.add(topCMPanel, BorderLayout.NORTH);
+        centermidPanel.add(midleftCMPanel, BorderLayout.WEST);
+        centermidPanel.add(midrightCMPanel, BorderLayout.EAST);
+        centermidPanel.add(bottomCMPanel, BorderLayout.SOUTH);
     }
+
     // public method to set up the bottom panel
     public void customizeBottomPanel() {
+
         // Customize the bottom panel
         bottomPanel.setBackground(backgroundColor);
         bottomPanel.setForeground(foregroundColor);
         bottomPanel.setLayout(new GridLayout(0, 2));
+
         // Initialize the buttons
         JButton backButton = new JButton("Go Back");
         JButton themesButton = new JButton("Change Theme");
+        
         // Add the buttons to the bottom panel
         bottomPanel.add(backButton);
         bottomPanel.add(themesButton);
+
         // Customize the buttons and add a function to them
+        backButton.addActionListener(e -> goback());
+        themesButton.addActionListener(e -> changeTheme());
+    }
+    // Method to close the dialog
+    public void goback(){
+        dialog.dispose();
+    }
+    // Method to change the theme
+    public void changeTheme(){
+        // TODO: change theme
     }
 }
