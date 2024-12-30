@@ -1,5 +1,8 @@
 import java.io.*;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.awt.*;
 import javax.swing.*;
 // Fix the fuelBar positioning
@@ -45,11 +48,16 @@ public class dashboard {
     // Theme array
     int currentTheme = 0;
     String[] themes = {"black and red", "black and blue", "white and red", "white and blue"};
+    
     // Get the light indicators
     ImageIcon leftIndicator = new ImageIcon("carIndicators\\leftIndicator.png");
     ImageIcon rightIndicator = new ImageIcon("carIndicators\\rightIndicator.png");
-
-    dashboard() {
+    
+    // panel to display the blinkers
+    JLabel blinkersPanelLeft = new JLabel();
+    JLabel blinkersPanelRight = new JLabel();
+    
+    dashboard() throws InterruptedException {
         // Call the method to load the config
         loadConfig();
         // Get the colors from the config file
@@ -109,16 +117,30 @@ public class dashboard {
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
     }
     // public method to set up the middle panel
-    public void customizeMiddlePanel() {
+    public void customizeMiddlePanel() throws InterruptedException {
 
         // set mid panels size
         leftmidPanel.setPreferredSize(new Dimension(200,750));
         rightmidPanel.setPreferredSize(new Dimension(200,750));
         centermidPanel.setPreferredSize(new Dimension(800,750));
-        
+
+        // Set icons for the blinkers (test)
+        //blinkersPanelLeft.setIcon(leftIndicator);
+        //blinkersPanelRight.setIcon(rightIndicator);
+        blink(true);
+
+        // Add the blinkers to the center of their respective panels
+        leftmidPanel.add(blinkersPanelLeft, BorderLayout.CENTER);
+        rightmidPanel.add(blinkersPanelRight, BorderLayout.CENTER);
+
         // Customize the middle panel
         middlePanel.setBackground(backgroundColor);
         middlePanel.setForeground(foregroundColor);
+
+        topCMPanel.setBackground(backgroundColor);
+        bottomCMPanel.setBackground(backgroundColor);
+        midleftCMPanel.setBackground(backgroundColor);
+        midrightCMPanel.setBackground(backgroundColor);
         
         // Add the components to the centermid panel
         centermidPanel.add(topCMPanel, BorderLayout.NORTH);
@@ -127,15 +149,15 @@ public class dashboard {
         centermidPanel.add(midrightCMPanel, BorderLayout.EAST);
 
         // Add the left side of the middle panel
-        leftmidPanel.setBackground(Color.BLUE);
+        leftmidPanel.setBackground(backgroundColor);
         middlePanel.add(leftmidPanel, BorderLayout.WEST);
 
         // Add the center of the middle panel
-        centermidPanel.setBackground(Color.GREEN);
+        centermidPanel.setBackground(backgroundColor);
         middlePanel.add(centermidPanel, BorderLayout.CENTER);
 
         // Add the right side of the middle panel
-        rightmidPanel.setBackground(Color.RED);
+        rightmidPanel.setBackground(backgroundColor);
         middlePanel.add(rightmidPanel, BorderLayout.EAST);
         
         // Set panel sizes
@@ -194,6 +216,60 @@ public class dashboard {
     // Method to close the dialog
     public void goback(){
         dialog.dispose();
+    }
+    // Method for the blinkers to pulsate
+    public void blink(boolean left) throws InterruptedException{
+        if (left) {
+            leftmidPanel.removeAll();
+            // Set the layout for leftmidPanel and rightmidPanel to BorderLayout
+            leftmidPanel.setLayout(new BorderLayout());
+            
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        // Schedule a task to run after 1 second
+        scheduler.schedule(() -> {
+            System.out.println("Executed after 1 second");
+        }, 1, TimeUnit.SECONDS);
+            // Set the layout for leftmidPanel and rightmidPanel to BorderLayout
+            leftmidPanel.setLayout(new BorderLayout());
+
+            // Set icons for the blinkers
+            blinkersPanelLeft.setIcon(leftIndicator);
+
+            // Set alignment for blinkers (if they are JLabels)
+            blinkersPanelLeft.setHorizontalAlignment(SwingConstants.CENTER);
+            blinkersPanelLeft.setVerticalAlignment(SwingConstants.CENTER);
+
+            // Add the blinkers to the center of their respective panels
+            leftmidPanel.add(blinkersPanelLeft, BorderLayout.CENTER);
+            //if the global variable is true keep going
+            //blink(true);
+            leftmidPanel.removeAll();
+            blinkersPanelLeft.removeAll();
+        }else{
+            leftmidPanel.removeAll();
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        // Schedule a task to run after 1 second
+        scheduler.schedule(() -> {
+            System.out.println("Executed after 1 second");
+        }, 5, TimeUnit.SECONDS);
+            rightmidPanel.setLayout(new BorderLayout());
+            // Set the layout for leftmidPanel and rightmidPanel to BorderLayout
+            rightmidPanel.setLayout(new BorderLayout());
+
+            // Set icons for the blinkers
+            blinkersPanelRight.setIcon(rightIndicator);
+
+            // Set alignment for blinkers (if they are JLabels)
+            blinkersPanelRight.setHorizontalAlignment(SwingConstants.CENTER);
+            blinkersPanelRight.setVerticalAlignment(SwingConstants.CENTER);
+
+            // Add the blinkers to the center of their respective panels
+            rightmidPanel.add(blinkersPanelRight, BorderLayout.CENTER);
+            // If the global variable is true keep going
+            //blink(true);
+        }
     }
     // Method to change the theme
     public void changeTheme(){
