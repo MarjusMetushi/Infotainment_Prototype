@@ -3,10 +3,10 @@ import java.util.Properties;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.*;
-// Fix the fuelBar positioning
+// Refactor the code
 // Improve the GUI
+// Read the CAN Bus 
 public class dashboard {
     // Variable declaration
     Properties config = new Properties();

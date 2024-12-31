@@ -8,12 +8,43 @@ public class SemiCircularRPMMeter extends JComponent {
     private int maxRpm = 8000; // Fixed maximum RPM
     private int currentRpm = 0; // Current RPM, initially set to 0
     private Color rpmMeterColor;
+    Color foregroundColor;
+    Color backgroundColor;
     private Properties config = new Properties();
    
     // Constructor to initialize RPM during object creation
     public SemiCircularRPMMeter(int currentRpm) {
+        loadConfig();
+        backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
+        foregroundColor = getColorFromString(config.getProperty("foregroundColor"));
         setLayout(null); // Set layout to null for custom positioning
         setRpm(currentRpm); // Use setRpm to handle validation
+    }
+
+    // Method to load the configurations
+    @SuppressWarnings("ConvertToTryWithResources")
+    public void loadConfig() {
+        config = new Properties();
+        try {
+            // Load properties from a file
+            FileInputStream fileInputStream = new FileInputStream("config.properties");
+            config.load(fileInputStream);
+            fileInputStream.close();
+        } catch (IOException e) {
+            // For debugging
+        }
+    }
+
+    // Method to fetch the color based on the string
+    public Color getColorFromString(String color) {
+        return switch (color.toLowerCase()) {
+            case "black" -> Color.BLACK;
+            case "white" -> Color.WHITE;
+            case "gray" -> Color.GRAY;
+            case "red" -> Color.RED;
+            case "blue" -> Color.BLUE;
+            default -> Color.WHITE; // Default value to be returned
+        };
     }
 
     // Method to update the current RPM
@@ -25,17 +56,6 @@ public class SemiCircularRPMMeter extends JComponent {
        repaint();
     }
 
-    // Load configuration properties
-    public void loadConfig() {
-        config = new Properties();
-        try {
-            FileInputStream fileInputStream = new FileInputStream("config.properties");
-            config.load(fileInputStream);
-            fileInputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -73,7 +93,7 @@ public class SemiCircularRPMMeter extends JComponent {
 
          // Customization for the speedometer
          g2d.setFont(getFont());
-         g2d.setColor(getForeground()); 
+         g2d.setColor(foregroundColor); 
          String speedText = currentRpm + " rpm";
          int textWidth = g2d.getFontMetrics().stringWidth(speedText);
          g2d.drawString(speedText, (width - textWidth) / 2, height - 10);

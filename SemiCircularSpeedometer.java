@@ -9,11 +9,16 @@ public class SemiCircularSpeedometer extends JComponent {
     private int maxSpeed = 260; // Fixed maximum speed
     private int currentSpeed = 0; // Current speed, when car starts it is 0km/h
     private Color speedometerColor;
+    Color backgroundColor;
+    Color foregroundColor;
     private Properties config = new Properties();
 
     // Constructor to initialize speed during object creation
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public SemiCircularSpeedometer(int currentSpeed) {
+        loadConfig();
+        foregroundColor = getColorFromString(config.getProperty("foregroundColor"));
+        backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
         setSpeed(currentSpeed); // Use setSpeed to handle validation
     }
 
@@ -38,7 +43,17 @@ public class SemiCircularSpeedometer extends JComponent {
             e.printStackTrace();
         }
     }
-
+    // Method to fetch the color based on the string
+    public Color getColorFromString(String color) {
+        return switch (color.toLowerCase()) {
+            case "black" -> Color.BLACK;
+            case "white" -> Color.WHITE;
+            case "gray" -> Color.GRAY;
+            case "red" -> Color.RED;
+            case "blue" -> Color.BLUE;
+            default -> Color.WHITE; // Default value to be returned
+        };
+    }
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -75,7 +90,7 @@ public class SemiCircularSpeedometer extends JComponent {
 
         // Customization for the speedometer
         g2d.setFont(getFont());
-        g2d.setColor(getForeground()); 
+        g2d.setColor(foregroundColor); 
         String speedText = currentSpeed + " km/h";
         int textWidth = g2d.getFontMetrics().stringWidth(speedText);
         g2d.drawString(speedText, (width - textWidth) / 2, height - 10);
