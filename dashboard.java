@@ -1,9 +1,9 @@
 import java.io.*;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.*;
 // Fix the fuelBar positioning
 // Improve the GUI
@@ -47,7 +47,8 @@ public class dashboard {
 
     // Theme array
     int currentTheme = 0;
-    String[] themes = {"black and red", "black and blue", "white and red", "white and blue"};
+    String[] backgroundColors = {"black", "white"};
+    String[] foregroundColors = {"red", "blue"};
     
     // Get the light indicators
     ImageIcon leftIndicator = new ImageIcon("carIndicators\\leftIndicator.png");
@@ -118,25 +119,18 @@ public class dashboard {
     }
     // public method to set up the middle panel
     public void customizeMiddlePanel() throws InterruptedException {
-
         // set mid panels size
         leftmidPanel.setPreferredSize(new Dimension(200,750));
         rightmidPanel.setPreferredSize(new Dimension(200,750));
         centermidPanel.setPreferredSize(new Dimension(800,750));
 
-        // Set icons for the blinkers (test)
-        //blinkersPanelLeft.setIcon(leftIndicator);
-        //blinkersPanelRight.setIcon(rightIndicator);
-        blink(true);
-
         // Add the blinkers to the center of their respective panels
         leftmidPanel.add(blinkersPanelLeft, BorderLayout.CENTER);
         rightmidPanel.add(blinkersPanelRight, BorderLayout.CENTER);
 
-        // Customize the middle panel
+        // Customize panels
         middlePanel.setBackground(backgroundColor);
         middlePanel.setForeground(foregroundColor);
-
         topCMPanel.setBackground(backgroundColor);
         bottomCMPanel.setBackground(backgroundColor);
         midleftCMPanel.setBackground(backgroundColor);
@@ -217,60 +211,39 @@ public class dashboard {
     public void goback(){
         dialog.dispose();
     }
-    // Method for the blinkers to pulsate
-    public void blink(boolean left) throws InterruptedException{
-        if (left) {
-            leftmidPanel.removeAll();
-            // Set the layout for leftmidPanel and rightmidPanel to BorderLayout
-            leftmidPanel.setLayout(new BorderLayout());
-            
-            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+   // Method for the blinkers to pulsate
+    public void blink(boolean left) {
+        // Timer to toggle the icon ON and OFF
+        Timer timer = new Timer(500, null); // 500ms interval for blinking
+        JLabel blinkerPanel = left ? blinkersPanelLeft : blinkersPanelRight;
+        Icon indicator = left ? leftIndicator : rightIndicator;
 
-        // Schedule a task to run after 1 second
-        scheduler.schedule(() -> {
-            System.out.println("Executed after 1 second");
-        }, 1, TimeUnit.SECONDS);
-            // Set the layout for leftmidPanel and rightmidPanel to BorderLayout
-            leftmidPanel.setLayout(new BorderLayout());
+        // ActionListener to toggle the icon
+        timer.addActionListener(new ActionListener() {
+            private boolean isOn = false;
 
-            // Set icons for the blinkers
-            blinkersPanelLeft.setIcon(leftIndicator);
-
-            // Set alignment for blinkers (if they are JLabels)
-            blinkersPanelLeft.setHorizontalAlignment(SwingConstants.CENTER);
-            blinkersPanelLeft.setVerticalAlignment(SwingConstants.CENTER);
-
-            // Add the blinkers to the center of their respective panels
-            leftmidPanel.add(blinkersPanelLeft, BorderLayout.CENTER);
-            //if the global variable is true keep going
-            //blink(true);
-            leftmidPanel.removeAll();
-            blinkersPanelLeft.removeAll();
-        }else{
-            leftmidPanel.removeAll();
-            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-        // Schedule a task to run after 1 second
-        scheduler.schedule(() -> {
-            System.out.println("Executed after 1 second");
-        }, 5, TimeUnit.SECONDS);
-            rightmidPanel.setLayout(new BorderLayout());
-            // Set the layout for leftmidPanel and rightmidPanel to BorderLayout
-            rightmidPanel.setLayout(new BorderLayout());
-
-            // Set icons for the blinkers
-            blinkersPanelRight.setIcon(rightIndicator);
-
-            // Set alignment for blinkers (if they are JLabels)
-            blinkersPanelRight.setHorizontalAlignment(SwingConstants.CENTER);
-            blinkersPanelRight.setVerticalAlignment(SwingConstants.CENTER);
-
-            // Add the blinkers to the center of their respective panels
-            rightmidPanel.add(blinkersPanelRight, BorderLayout.CENTER);
-            // If the global variable is true keep going
-            //blink(true);
-        }
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (isOn) {
+                    blinkerPanel.setIcon(null); // Turn OFF
+                } else {
+                    blinkerPanel.setIcon(indicator); // Turn ON
+                    blinkerPanel.setHorizontalAlignment(SwingConstants.CENTER);
+                    blinkerPanel.setVerticalAlignment(SwingConstants.CENTER);
+                }
+                isOn = !isOn; // Toggle state
+            }
+        });
+        
+        // Start the timer
+        timer.start();
+        // INTEGRATE IT WITH THE CAN BUS
+        new Timer(5000, e -> {
+            timer.stop(); 
+            blinkerPanel.setIcon(null);
+        }).start(); // Stops blinking after 5 seconds
     }
+
     // Method to change the theme
     public void changeTheme(){
         // TODO: change theme
