@@ -1,87 +1,67 @@
-import java.io.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.*;
-// Refactor the code
-// Improve the GUI
-// Read the CAN Bus 
 public class dashboard {
-    // Variable declaration
-    Properties config = new Properties();
+    // Main dialog panels
     JPanel topPanel = new JPanel();
-    JPanel middlePanel = new JPanel();
-    JPanel bottomPanel = new JPanel();
-
-    // everything here goes to the middle panel
-    JPanel leftmidPanel = new JPanel();
-    JPanel rightmidPanel = new JPanel();
-    JPanel centermidPanel = new JPanel();
-
-    // everything here goes to the centermid panel
-    JPanel topCMPanel = new JPanel();
-    JPanel bottomCMPanel = new JPanel();
-    JPanel midleftCMPanel = new JPanel();
-    JPanel midrightCMPanel = new JPanel();
-
-    // default values for the interface
+    JPanel mainPanel = new JPanel(new GridLayout(4, 3));
+    JPanel bottomPanel = new JPanel(new GridLayout(0,2));
+    // Colors and properties
     Color backgroundColor;
     Color foregroundColor;
     Color buttonBorderColor;
-    
-    // Panels to display the info
+    Properties config = new Properties();
+    // Panels for the information on the dashboard
+    JPanel speedPanel = new JPanel();
+    JPanel rpmPanel = new JPanel();
+    JPanel fuelPanel = new JPanel();
+    JPanel enginetempPanel = new JPanel();
+    JPanel leftBlinkerPanel = new JPanel();
+    JPanel rightBlinkerPanel = new JPanel();
+    JPanel emergencyPanel = new JPanel();
+    JPanel seatbeltPanel = new JPanel();
+    JPanel headLightPanel = new JPanel();
+    JPanel ABSPanel = new JPanel();
     JPanel gearPanel = new JPanel();
-    JPanel engineTempPanel = new JPanel();
-    JPanel fuelLevelPanel = new JPanel();
-    
-    // Dialog val
-    JDialog dialog;
-
-    // values
-    int currentSpeed = 0;
-    int currentRpm = 0;
-    int currentFuelLevel = 40;
-    char gear = 0;
+    JPanel coolantTempPanel = new JPanel();
+    // Variables for values
+    int speed = 50;
+    int rpm = 1200;
+    int fuel = 0;
     int engineTemp = 0;
-
-    // Theme array
-    int currentTheme = 0;
-    String[] backgroundColors = {"black", "white"};
-    String[] foregroundColors = {"red", "blue"};
-    
-    // Get the light indicators
-    ImageIcon leftIndicator = new ImageIcon("carIndicators\\leftIndicator.png");
-    ImageIcon rightIndicator = new ImageIcon("carIndicators\\rightIndicator.png");
-    
-    // panel to display the blinkers
-    JLabel blinkersPanelLeft = new JLabel();
-    JLabel blinkersPanelRight = new JLabel();
-    
-    dashboard() throws InterruptedException {
-        // Call the method to load the config
+    boolean leftBlinker = false;
+    boolean rightBlinker = false;
+    boolean emergency = false;
+    boolean seatbelt = false;
+    boolean headLight = false;
+    boolean ABS = false;
+    char gear = '1';
+    int coolantTemp = 0;
+    dashboard() {
         loadConfig();
-        // Get the colors from the config file
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor"));
-        buttonBorderColor = backgroundColor == Color.BLACK
-                ? Color.decode(config.getProperty("borderColor1"))
-                : Color.decode(config.getProperty("borderColor2"));
-        // Set up the dialog
-        dialog = new JDialog();
-        dialog.setTitle("Dashboard");
-        dialog.setSize(1280, 720);
-        dialog.setLayout(new BorderLayout());
+        buttonBorderColor = getColorFromString(config.getProperty("borderColor2"));
+        JDialog dialog = new JDialog();
         dialog.setBackground(backgroundColor);
         dialog.setForeground(foregroundColor);
-        // Customize the panels
-        customizeTopPanel();
-        customizeMiddlePanel();
-        customizeBottomPanel();
-        // Adding everything together
+        dialog.setTitle("Dashboard");
+        dialog.setSize(1280, 720);
         dialog.add(topPanel, BorderLayout.NORTH);
-        dialog.add(middlePanel, BorderLayout.CENTER);
+        dialog.add(mainPanel, BorderLayout.CENTER);
         dialog.add(bottomPanel, BorderLayout.SOUTH);
+        customizeTopPanel();
+        customizeMainPanel();
+        customizeBottomPanel();
         dialog.setVisible(true);
     }
     // method to load the config file
@@ -92,8 +72,8 @@ public class dashboard {
             // For debugging
         }
     }
-    // method to fetch a color based on the string
-    public Color getColorFromString(String color) {
+     // method to fetch a color based on the string
+     public Color getColorFromString(String color) {
         return switch (color.toLowerCase()) {
             case "black" -> Color.BLACK;
             case "white" -> Color.WHITE;
@@ -103,11 +83,10 @@ public class dashboard {
             default -> Color.WHITE;
         };
     }
-    // public method to set up the time
     public void customizeTopPanel() {
+        topPanel.setLayout(new BorderLayout());
         topPanel.setBackground(backgroundColor);
-        topPanel.setForeground(foregroundColor);
-        //Adding the time
+        //Set up a textfield for time and date
         JTextField timeAndDateField = new JTextField("Time: 19:20, Date: 2024-11-22");
         timeAndDateField.setHorizontalAlignment(JTextField.CENTER);
         timeAndDateField.setEditable(false);
@@ -117,135 +96,62 @@ public class dashboard {
         new Time(timeAndDateField, "HH:mm:ss, yyyy-MM-dd");
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
     }
-    // public method to set up the middle panel
-    public void customizeMiddlePanel() throws InterruptedException {
-        // set mid panels size
-        leftmidPanel.setPreferredSize(new Dimension(200,750));
-        rightmidPanel.setPreferredSize(new Dimension(200,750));
-        centermidPanel.setPreferredSize(new Dimension(800,750));
-
-        // Add the blinkers to the center of their respective panels
-        leftmidPanel.add(blinkersPanelLeft, BorderLayout.CENTER);
-        rightmidPanel.add(blinkersPanelRight, BorderLayout.CENTER);
-
-        // Customize panels
-        middlePanel.setBackground(backgroundColor);
-        middlePanel.setForeground(foregroundColor);
-        topCMPanel.setBackground(backgroundColor);
-        bottomCMPanel.setBackground(backgroundColor);
-        midleftCMPanel.setBackground(backgroundColor);
-        midrightCMPanel.setBackground(backgroundColor);
-        
-        // Add the components to the centermid panel
-        centermidPanel.add(topCMPanel, BorderLayout.NORTH);
-        centermidPanel.add(bottomCMPanel, BorderLayout.SOUTH);
-        centermidPanel.add(midleftCMPanel, BorderLayout.WEST);
-        centermidPanel.add(midrightCMPanel, BorderLayout.EAST);
-
-        // Add the left side of the middle panel
-        leftmidPanel.setBackground(backgroundColor);
-        middlePanel.add(leftmidPanel, BorderLayout.WEST);
-
-        // Add the center of the middle panel
-        centermidPanel.setBackground(backgroundColor);
-        middlePanel.add(centermidPanel, BorderLayout.CENTER);
-
-        // Add the right side of the middle panel
-        rightmidPanel.setBackground(backgroundColor);
-        middlePanel.add(rightmidPanel, BorderLayout.EAST);
-        
-        // Set panel sizes
-        topCMPanel.setPreferredSize(new Dimension(800,200));
-        bottomCMPanel.setPreferredSize(new Dimension(800,200));
-        midleftCMPanel.setPreferredSize(new Dimension(300,200));
-        midrightCMPanel.setPreferredSize(new Dimension(300,200));
-        
-        // Set colors
-        fuelLevelPanel.setBackground(backgroundColor);
-        gearPanel.setBackground(backgroundColor);
-        engineTempPanel.setBackground(backgroundColor);
-        midleftCMPanel.setBackground(backgroundColor);
-        midrightCMPanel.setBackground(backgroundColor);
-
-        //Test
-        gearPanel.setPreferredSize(new Dimension(200,200));
-        engineTempPanel.setPreferredSize(new Dimension(200,200));
-        fuelLevelPanel.setPreferredSize(new Dimension(200,200));
-
-        // Add everything together
-        topCMPanel.add(gearPanel);
-        topCMPanel.add(engineTempPanel);
-        bottomCMPanel.add(fuelLevelPanel);
-        midleftCMPanel.add(new SemiCircularSpeedometer(currentSpeed));
-        midrightCMPanel.add(new SemiCircularRPMMeter(currentRpm));
-        // TODO: add fuel level bar
-        fuelLevelPanel.add(new FuelBarPanel(currentFuelLevel));
-        bottomCMPanel.add(fuelLevelPanel);
-        centermidPanel.add(topCMPanel, BorderLayout.NORTH);
-        centermidPanel.add(midleftCMPanel, BorderLayout.WEST);
-        centermidPanel.add(midrightCMPanel, BorderLayout.EAST);
-        centermidPanel.add(bottomCMPanel, BorderLayout.SOUTH);
+    public void customizeMainPanel() {
+        // Set up the main panel
+        mainPanel.setLayout(new GridLayout(4, 3));
+        mainPanel.setBackground(backgroundColor);
+        mainPanel.setForeground(foregroundColor);
+        // Customize the panels
+        customizePanel(speedPanel);
+        customizePanel(rpmPanel);
+        customizePanel(fuelPanel);
+        customizePanel(enginetempPanel);
+        customizePanel(leftBlinkerPanel);
+        customizePanel(rightBlinkerPanel);
+        customizePanel(emergencyPanel);
+        customizePanel(seatbeltPanel);
+        customizePanel(headLightPanel);
+        customizePanel(ABSPanel);
+        customizePanel(gearPanel);
+        customizePanel(coolantTempPanel);
+        // Add the information to the panels
+        speedPanel.add(new SemiCircularSpeedometer(speed));
+        rpmPanel.add(new SemiCircularRPMMeter(rpm));
+        fuelPanel.add(new FuelBarPanel(fuel));
+        // Add the panels to the main panel
+        mainPanel.add(speedPanel);
+        mainPanel.add(rpmPanel);
+        mainPanel.add(fuelPanel);   
+        mainPanel.add(enginetempPanel);
+        mainPanel.add(leftBlinkerPanel);
+        mainPanel.add(rightBlinkerPanel);
+        mainPanel.add(emergencyPanel);
+        mainPanel.add(seatbeltPanel);
+        mainPanel.add(headLightPanel);
+        mainPanel.add(ABSPanel);
+        mainPanel.add(gearPanel);
+        mainPanel.add(coolantTempPanel);    
     }
-
-    // public method to set up the bottom panel
     public void customizeBottomPanel() {
-
-        // Customize the bottom panel
-        bottomPanel.setBackground(backgroundColor);
-        bottomPanel.setForeground(foregroundColor);
-        bottomPanel.setLayout(new GridLayout(0, 2));
-
-        // Initialize the buttons
-        JButton backButton = new JButton("Go Back");
-        JButton themesButton = new JButton("Change Theme");
-        
-        // Add the buttons to the bottom panel
-        bottomPanel.add(backButton);
-        bottomPanel.add(themesButton);
-
-        // Customize the buttons and add a function to them
-        backButton.addActionListener(e -> goback());
-        themesButton.addActionListener(e -> changeTheme());
+        JButton exitButton = new JButton("Exit");
+        JButton themeButton = new JButton("Change Theme");
+        CustomizeBtn(exitButton);
+        CustomizeBtn(themeButton);
+        bottomPanel.add(exitButton);
+        bottomPanel.add(themeButton);
     }
-    // Method to close the dialog
-    public void goback(){
-        dialog.dispose();
+    // Method to customize the buttons
+    public void CustomizeBtn(JButton btn) {
+        btn.setBackground(backgroundColor);
+        btn.setForeground(foregroundColor);
+        btn.setBorder(BorderFactory.createLineBorder(buttonBorderColor,2));
+        btn.setFocusable(false);
+        btn.setFont(new Font("Arial",Font.BOLD,20));
     }
-   // Method for the blinkers to pulsate
-    public void blink(boolean left) {
-        // Timer to toggle the icon ON and OFF
-        Timer timer = new Timer(500, null); // 500ms interval for blinking
-        JLabel blinkerPanel = left ? blinkersPanelLeft : blinkersPanelRight;
-        Icon indicator = left ? leftIndicator : rightIndicator;
-
-        // ActionListener to toggle the icon
-        timer.addActionListener(new ActionListener() {
-            private boolean isOn = false;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (isOn) {
-                    blinkerPanel.setIcon(null); // Turn OFF
-                } else {
-                    blinkerPanel.setIcon(indicator); // Turn ON
-                    blinkerPanel.setHorizontalAlignment(SwingConstants.CENTER);
-                    blinkerPanel.setVerticalAlignment(SwingConstants.CENTER);
-                }
-                isOn = !isOn; // Toggle state
-            }
-        });
-        
-        // Start the timer
-        timer.start();
-        // INTEGRATE IT WITH THE CAN BUS
-        new Timer(5000, e -> {
-            timer.stop(); 
-            blinkerPanel.setIcon(null);
-        }).start(); // Stops blinking after 5 seconds
-    }
-
-    // Method to change the theme
-    public void changeTheme(){
-        // TODO: change theme
+    // Method to customize the panels
+    public void customizePanel(JPanel panel) {
+        panel.setBackground(backgroundColor);
+        panel.setForeground(foregroundColor);
+        panel.setBorder(BorderFactory.createLineBorder(buttonBorderColor,2));
     }
 }
