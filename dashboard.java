@@ -15,6 +15,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 public class dashboard {
@@ -40,9 +41,17 @@ public class dashboard {
     JPanel ABSPanel = new JPanel();
     JPanel gearPanel = new JPanel();
     JPanel coolantTempPanel = new JPanel();
+    // Labels for the information on the dashboard
+    JLabel engineTempLabel = new JLabel("Engine Temperature: 0°C");
+    JLabel seatbeltLabel = new JLabel("Seatbelt: OFF");
+    JLabel headLightLabel = new JLabel("Headlights: OFF");
+    JLabel ABSLabel = new JLabel("ABS: OFF");
+    JLabel gearLabel = new JLabel("Gear: N");
+    JLabel coolantTempLabel = new JLabel("Coolant Temperature: 0°C");
     // Labels and icons for blinkers
     JLabel blinkersPanelLeft = new JLabel();
     JLabel blinkersPanelRight = new JLabel();
+    JLabel hazardLightLabel = new JLabel();
     Icon leftIndicator = new ImageIcon("carIndicators\\leftIndicator.png");
     Icon rightIndicator = new ImageIcon("carIndicators\\rightIndicator.png");
     Icon triangle = new ImageIcon("carIndicators\\hazardLight.png");
@@ -59,18 +68,23 @@ public class dashboard {
     boolean ABS = false;
     char gear = '1';
     int coolantTemp = 0;
+    // Variables for the dashboard theme
+    int currentDashboardTheme;
+    // Buttons
+    JButton themeButton = new JButton("Change Theme");
+    JButton exitButton = new JButton("Exit");
     /*
      * TODO:
-     * Fix the blinking method to work for the blinkers and hazard lights - Problem: assign separate panels to separate icons
+     * Fix the problem with saving into the config file
+     * Improve the GUI
      * Simulate everything with the CAN bus and Run tests
-     * Create a method to change the theme and add the theme information to the config file
      * Create a method to fetch information from the CAN Bus and update the values each second
      */
     dashboard() {
         loadConfig();
-        backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
-        foregroundColor = getColorFromString(config.getProperty("foregroundColor"));
-        buttonBorderColor = getColorFromString(config.getProperty("borderColor2"));
+        changeTheme(0);
+        changeEverythingToNewTheme();
+        currentDashboardTheme = Integer.parseInt(config.getProperty("CurrentDashboardTheme"));
         JDialog dialog = new JDialog();
         dialog.setBackground(backgroundColor);
         dialog.setForeground(foregroundColor);
@@ -112,7 +126,6 @@ public class dashboard {
         timeAndDateField.setEditable(false);
         timeAndDateField.setBackground(backgroundColor);
         timeAndDateField.setForeground(foregroundColor);
-        timeAndDateField.setBorder(BorderFactory.createLineBorder(buttonBorderColor, 2));
         new Time(timeAndDateField, "HH:mm:ss, yyyy-MM-dd");
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
     }
@@ -123,7 +136,7 @@ public class dashboard {
         mainPanel.setForeground(foregroundColor);
         rightBlinkerPanel.add(blinkersPanelRight);
         leftBlinkerPanel.add(blinkersPanelLeft);
-        blink(true);
+        hazardLightBlink();
         // Customize the panels
         customizePanel(speedPanel);
         customizePanel(rpmPanel);
@@ -141,21 +154,21 @@ public class dashboard {
         speedPanel.add(new SemiCircularSpeedometer(speed));
         rpmPanel.add(new SemiCircularRPMMeter(rpm));
         fuelPanel.add(new FuelBarPanel(fuel));
-        enginetempPanel.add(new JLabel("Engine Temperature: "+(engineTemp + "°C")));
-        headLightPanel.add(new JLabel("Headlights: "+(headLight ? "ON" : "OFF")));
-        seatbeltPanel.add(new JLabel("Seatbelt: " + (seatbelt ? "ON" : "OFF")));
-        emergencyPanel.add(new JLabel("Emergency: " + (emergency ? "ON" : "OFF")));
-        ABSPanel.add(new JLabel("Seatbelt: " + (ABS ? "ON" : "OFF")));
-        gearPanel.add(new JLabel("Gear: "+gear));
-        coolantTempPanel.add(new JLabel("Coolant Temperature: "+coolantTemp + "°C"));   
+        enginetempPanel.add(engineTempLabel);
+        seatbeltPanel.add(seatbeltLabel);
+        headLightPanel.add(headLightLabel);
+        emergencyPanel.add(hazardLightLabel);
+        ABSPanel.add(ABSLabel);
+        gearPanel.add(gearLabel);
+        coolantTempPanel.add(coolantTempLabel);
         // Add the panels to the main panel
         mainPanel.add(speedPanel);
         mainPanel.add(rpmPanel);
         mainPanel.add(fuelPanel);   
-        mainPanel.add(enginetempPanel);
         mainPanel.add(leftBlinkerPanel);
         mainPanel.add(rightBlinkerPanel);
         mainPanel.add(emergencyPanel);
+        mainPanel.add(enginetempPanel);
         mainPanel.add(seatbeltPanel);
         mainPanel.add(headLightPanel);
         mainPanel.add(ABSPanel);
@@ -164,18 +177,107 @@ public class dashboard {
     }
     // Method to customize the bottom panel
     public void customizeBottomPanel() {
-        JButton exitButton = new JButton("Exit");
-        JButton themeButton = new JButton("Change Theme");
+        exitButton = new JButton("Exit");
+        themeButton = new JButton("Change Theme");
+        themeButton.addActionListener(e -> changeTheme(1));
+        exitButton.addActionListener(e -> System.exit(0));
         CustomizeBtn(exitButton);
         CustomizeBtn(themeButton);
         bottomPanel.add(exitButton);
         bottomPanel.add(themeButton);
     }
+    // Method to change the theme
+    public void changeTheme(int addition) {
+        currentDashboardTheme = (currentDashboardTheme + addition) % 4;
+        config.setProperty("CurrentDashboardTheme", String.valueOf(currentDashboardTheme));
+        try (FileOutputStream out = new FileOutputStream("config.properties")) {
+            config.store(out, "Dashboard Theme changed");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        if(currentDashboardTheme == 0) {
+            backgroundColor = Color.BLACK;
+            foregroundColor = Color.BLUE;
+            changeEverythingToNewTheme();
+        } else if(currentDashboardTheme == 1) {
+            backgroundColor = Color.BLACK;
+            foregroundColor = Color.RED;
+            changeEverythingToNewTheme();
+        } else if(currentDashboardTheme == 2) {
+            backgroundColor = Color.WHITE;
+            foregroundColor = Color.BLUE;
+            changeEverythingToNewTheme();
+        } else if(currentDashboardTheme == 3) {
+            backgroundColor = Color.WHITE;
+            foregroundColor = Color.RED;
+            changeEverythingToNewTheme();
+        }
+    }
+    // Method to change everything to the new theme
+    public void changeEverythingToNewTheme() {
+        // Change background of the panels
+        topPanel.setBackground(backgroundColor);
+        mainPanel.setBackground(backgroundColor);
+        bottomPanel.setBackground(backgroundColor);
+        speedPanel.setBackground(backgroundColor);
+        rpmPanel.setBackground(backgroundColor);
+        fuelPanel.setBackground(backgroundColor);
+        enginetempPanel.setBackground(backgroundColor);
+        leftBlinkerPanel.setBackground(backgroundColor);
+        rightBlinkerPanel.setBackground(backgroundColor);
+        emergencyPanel.setBackground(backgroundColor);
+        seatbeltPanel.setBackground(backgroundColor);
+        headLightPanel.setBackground(backgroundColor);
+        ABSPanel.setBackground(backgroundColor);
+        gearPanel.setBackground(backgroundColor);
+        coolantTempPanel.setBackground(backgroundColor);
+        blinkersPanelLeft.setBackground(backgroundColor);
+        blinkersPanelRight.setBackground(backgroundColor);
+        // Change foreground of the panels
+        topPanel.setForeground(foregroundColor);
+        mainPanel.setForeground(foregroundColor);
+        bottomPanel.setForeground(foregroundColor);
+        speedPanel.setForeground(foregroundColor);
+        rpmPanel.setForeground(foregroundColor);
+        fuelPanel.setForeground(foregroundColor);
+        enginetempPanel.setForeground(foregroundColor);
+        leftBlinkerPanel.setForeground(foregroundColor);
+        rightBlinkerPanel.setForeground(foregroundColor);
+        emergencyPanel.setForeground(foregroundColor);
+        seatbeltPanel.setForeground(foregroundColor);
+        headLightPanel.setForeground(foregroundColor);
+        ABSPanel.setForeground(foregroundColor);
+        gearPanel.setForeground(foregroundColor);
+        coolantTempPanel.setForeground(foregroundColor);
+        blinkersPanelLeft.setForeground(foregroundColor);
+        blinkersPanelRight.setForeground(foregroundColor);
+        engineTempLabel.setForeground(foregroundColor);
+        seatbeltLabel.setForeground(foregroundColor);
+        headLightLabel.setForeground(foregroundColor);
+        // Change foreground of the labels
+        ABSLabel.setForeground(foregroundColor);
+        gearLabel.setForeground(foregroundColor);   
+        coolantTempLabel.setForeground(foregroundColor);
+        // Change background of the labels
+        seatbeltLabel.setBackground(backgroundColor);
+        headLightLabel.setBackground(backgroundColor);
+        ABSLabel.setBackground(backgroundColor);
+        gearLabel.setBackground(backgroundColor);
+        coolantTempLabel.setBackground(backgroundColor);
+        // Change border of the panels
+        topPanel.setBorder(BorderFactory.createLineBorder(foregroundColor,2));
+        bottomPanel.setBorder(BorderFactory.createLineBorder(foregroundColor,2));
+        mainPanel.setBorder(BorderFactory.createLineBorder(foregroundColor,2));
+        // Change foreground and background of the buttons
+        exitButton.setBackground(backgroundColor);
+        exitButton.setForeground(foregroundColor);
+        themeButton.setBackground(backgroundColor);
+        themeButton.setForeground(foregroundColor);
+    }
     // Method to customize the buttons
     public void CustomizeBtn(JButton btn) {
         btn.setBackground(backgroundColor);
         btn.setForeground(foregroundColor);
-        btn.setBorder(BorderFactory.createLineBorder(buttonBorderColor,2));
         btn.setFocusable(false);
         btn.setFont(new Font("Arial",Font.BOLD,20));
     }
@@ -216,5 +318,32 @@ public class dashboard {
             timer.stop(); 
             blinkerPanel.setIcon(null);
         }).start(); // Stops blinking after 5 seconds
+    }
+    public void hazardLightBlink() {
+        blink(true);
+        blink(false);
+        Timer timer = new Timer(500, null);
+        JLabel blinkerPanel = hazardLightLabel;
+        Icon indicator = triangle;
+        timer.addActionListener(new ActionListener() {
+            private boolean isOn = false;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (isOn) {
+                    blinkerPanel.setIcon(null); // Turn OFF
+                } else {
+                    blinkerPanel.setIcon(indicator); // Turn ON
+                    blinkerPanel.setHorizontalAlignment(SwingConstants.CENTER);
+                    blinkerPanel.setVerticalAlignment(SwingConstants.CENTER);
+                }
+                isOn = !isOn; // Toggle state
+            }
+        });
+        timer.start();
+        new Timer(5000, e -> {
+            timer.stop(); 
+            blinkerPanel.setIcon(null);
+        });
     }
 }
