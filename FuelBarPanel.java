@@ -19,7 +19,7 @@ public class FuelBarPanel extends JPanel {
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
 
         foregroundColor = Color.decode(config.getProperty("borderColor1"));
-        setPreferredSize(new Dimension(300, 40)); // Set default dimensions for horizontal bar
+        setPreferredSize(new Dimension(280, 50)); // Set default dimensions for horizontal bar
         currentFuel = initialFuel;
         fuelText = currentFuel + "%";
     }

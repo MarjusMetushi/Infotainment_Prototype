@@ -98,6 +98,6 @@ public class SemiCircularSpeedometer extends JComponent {
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(300, 150); // Set default size for the component
+        return new Dimension(260, 130); // Set default size for the component
     }
 }

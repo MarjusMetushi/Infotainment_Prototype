@@ -101,6 +101,6 @@ public class SemiCircularRPMMeter extends JComponent {
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(300, 150);
+        return new Dimension(260, 130);
     }
 }
