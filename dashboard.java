@@ -1,4 +1,3 @@
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -10,22 +9,24 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Properties;
 public class dashboard {
+    JDialog dialog ;
     // Main dialog panels
     JPanel topPanel = new JPanel();
     JPanel mainPanel = new JPanel(new GridLayout(4, 3));
     JPanel bottomPanel = new JPanel(new GridLayout(0,1));
     // Colors and properties
     Color backgroundColor = Color.BLACK;
-    Color foregroundColor = Color.RED;
-    Color buttonBorderColor = Color.RED;
+    Color foregroundColor = Color.WHITE;
     Color txtfieldbackgroundColor;
     Color txtfieldforegroundColor;
     Properties config = new Properties();
@@ -71,19 +72,17 @@ public class dashboard {
     int coolantTemp = 0;
     // Variables for the dashboard theme
     int currentDashboardTheme;
-    // Buttons
-    JButton themeButton = new JButton("Change Theme");
+    // Button
     JButton exitButton = new JButton("Exit");
     // Textfield for time and date
     JTextField timeAndDateField = new JTextField();
     /*
      * TODO:
-     * Improve the GUI
      * Simulate everything with the CAN bus and Run tests
      * Create a method to fetch information from the CAN Bus and update the values each second
      */
     dashboard() {
-        JDialog dialog = new JDialog();
+        dialog = new JDialog();
         dialog.setBackground(backgroundColor);
         dialog.setForeground(foregroundColor);
         dialog.setTitle("Dashboard");
@@ -129,27 +128,72 @@ public class dashboard {
         customizePanel(ABSPanel);
         customizePanel(gearPanel);
         customizePanel(coolantTempPanel);
-        // Add the information to the panels
+        // Customize the labels
+        customizeLabel(engineTempLabel);
+        customizeLabel(seatbeltLabel);
+        customizeLabel(headLightLabel);
+        customizeLabel(ABSLabel);
+        customizeLabel(gearLabel);
+        customizeLabel(coolantTempLabel);
+        // Add the information to the panels and center the labels
         speedPanel.add(new SemiCircularSpeedometer(speed));
+        
         rpmPanel.add(new SemiCircularRPMMeter(rpm));
+        
         fuelPanel.setLayout(new BoxLayout(fuelPanel, BoxLayout.Y_AXIS));
         fuelPanel.add(Box.createVerticalGlue()); 
         fuelPanel.add(new FuelBarPanel(fuel));
         fuelPanel.add(Box.createVerticalGlue()); 
+
+        enginetempPanel.setLayout(new BoxLayout(enginetempPanel, BoxLayout.Y_AXIS));
+        enginetempPanel.add(Box.createVerticalGlue());
+        engineTempLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         enginetempPanel.add(engineTempLabel);
+        enginetempPanel.add(Box.createVerticalGlue());
+
+        seatbeltPanel.setLayout(new BoxLayout(seatbeltPanel, BoxLayout.Y_AXIS));
+        seatbeltPanel.add(Box.createVerticalGlue());
+        seatbeltLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         seatbeltPanel.add(seatbeltLabel);
+        seatbeltPanel.add(Box.createVerticalGlue());
+
+        headLightPanel.setLayout(new BoxLayout(headLightPanel, BoxLayout.Y_AXIS));
+        headLightPanel.add(Box.createVerticalGlue());
+        headLightLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         headLightPanel.add(headLightLabel);
+        headLightPanel.add(Box.createVerticalGlue());
+
+        emergencyPanel.setLayout(new BoxLayout(emergencyPanel, BoxLayout.Y_AXIS));
+        emergencyPanel.add(Box.createVerticalGlue());
+        hazardLightLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         emergencyPanel.add(hazardLightLabel);
+        emergencyPanel.add(Box.createVerticalGlue());
+
+        ABSPanel.setLayout(new BoxLayout(ABSPanel, BoxLayout.Y_AXIS));
+        ABSPanel.add(Box.createVerticalGlue());
+        ABSLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         ABSPanel.add(ABSLabel);
+        ABSPanel.add(Box.createVerticalGlue());
+
+        gearPanel.setLayout(new BoxLayout(gearPanel, BoxLayout.Y_AXIS));
+        gearPanel.add(Box.createVerticalGlue());
+        gearLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         gearPanel.add(gearLabel);
+        gearPanel.add(Box.createVerticalGlue());
+
+        coolantTempPanel.setLayout(new BoxLayout(coolantTempPanel, BoxLayout.Y_AXIS));
+        coolantTempPanel.add(Box.createVerticalGlue());
+        coolantTempLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
         coolantTempPanel.add(coolantTempLabel);
+        coolantTempPanel.add(Box.createVerticalGlue());
+
         // Add the panels to the main panel
         mainPanel.add(speedPanel);
         mainPanel.add(rpmPanel);
         mainPanel.add(fuelPanel);   
         mainPanel.add(leftBlinkerPanel);
-        mainPanel.add(rightBlinkerPanel);
         mainPanel.add(emergencyPanel);
+        mainPanel.add(rightBlinkerPanel);
         mainPanel.add(enginetempPanel);
         mainPanel.add(seatbeltPanel);
         mainPanel.add(headLightPanel);
@@ -160,9 +204,15 @@ public class dashboard {
     // Method to customize the bottom panel
     public void customizeBottomPanel() {
         exitButton = new JButton("Exit");
-        exitButton.addActionListener(e -> System.exit(0));
+        exitButton.addActionListener(
+            new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dialog.dispose();
+                }
+            }
+        );
         CustomizeBtn(exitButton);
-        CustomizeBtn(themeButton);
         bottomPanel.add(exitButton);
     }
     // Method to customize the buttons
@@ -176,7 +226,10 @@ public class dashboard {
     public void customizePanel(JPanel panel) {
         panel.setBackground(backgroundColor);
         panel.setForeground(foregroundColor);
-        panel.setBorder(BorderFactory.createLineBorder(buttonBorderColor,2));
+    }
+    public void customizeLabel(JLabel label) {
+        label.setBackground(backgroundColor);
+        label.setForeground(foregroundColor);
     }
     // Method for the blinkers to pulsate
     public void blink(boolean left) {
