@@ -82,6 +82,15 @@ public class dashboard {
      * Create a method to fetch information from the CAN Bus and update the values each second
      */
     dashboard() {
+        // Start the thread to fetch information from the CAN bus
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                fetchInformation();
+            }
+        });
+        thread.start();
+        // set up the main interface
         dialog = new JDialog();
         dialog.setBackground(backgroundColor);
         dialog.setForeground(foregroundColor);
@@ -90,6 +99,7 @@ public class dashboard {
         dialog.add(topPanel, BorderLayout.NORTH);
         dialog.add(mainPanel, BorderLayout.CENTER);
         dialog.add(bottomPanel, BorderLayout.SOUTH);
+        // Customize the panels
         customizeTopPanel();
         customizeMainPanel();
         customizeBottomPanel();
@@ -289,5 +299,9 @@ public class dashboard {
             timer.stop(); 
             blinkerPanel.setIcon(null);
         });
+    }
+    public void fetchInformation() {
+        // Fetch information from the CAN bus
+        // Integrate it with the CAN bus
     }
 }
