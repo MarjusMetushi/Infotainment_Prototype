@@ -13,6 +13,7 @@ https://www.python.org/downloads/
 * Default python libraries
 * OpenCV - pip install opencv-python
 * TKinter - pip install tkinter
+* OBD-II reader - pip install obd & pip install python-can
 ## Install c++
 https://www.bloodshed.net/
 ### Dependencies/Libraries used:
