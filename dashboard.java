@@ -1,78 +1,82 @@
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.Timer;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Properties;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+// TODO: Fix the issue with the first 3 panels not showing information
+// Order: speed, fuel level, coolant temp, engine temp, gear, rpm, throttle pos, mass air flow, fuel rate, timing advance, intake air temp, oxygen sensors, fuel pressure, ambient air temp, engine coolant temp, barometric pressure, short term fuel trim, long term fuel trim, fuel type, control module voltage
 public class dashboard {
-    JDialog dialog ;
+    JDialog dialog;
     // Main dialog panels
     JPanel topPanel = new JPanel();
-    JPanel mainPanel = new JPanel(new GridLayout(4, 3));
+    JPanel mainPanel = new JPanel(new GridLayout(4, 4));
     JPanel bottomPanel = new JPanel(new GridLayout(0,1));
     // Colors and properties
     Color backgroundColor = Color.BLACK;
     Color foregroundColor = Color.WHITE;
     Color txtfieldbackgroundColor;
     Color txtfieldforegroundColor;
-    Properties config = new Properties();
     // Panels for the information on the dashboard
     JPanel speedPanel = new JPanel();
-    JPanel rpmPanel = new JPanel();
     JPanel fuelPanel = new JPanel();
-    JPanel enginetempPanel = new JPanel();
-    JPanel leftBlinkerPanel = new JPanel();
-    JPanel rightBlinkerPanel = new JPanel();
-    JPanel emergencyPanel = new JPanel();
-    JPanel seatbeltPanel = new JPanel();
-    JPanel headLightPanel = new JPanel();
-    JPanel ABSPanel = new JPanel();
-    JPanel gearPanel = new JPanel();
     JPanel coolantTempPanel = new JPanel();
+    JPanel rpmPanel = new JPanel();
+    JPanel throttlePositionPanel = new JPanel();
+    JPanel massAirFlowPanel = new JPanel();
+    JPanel fuelRatePanel = new JPanel();
+    JPanel timingAdvancePanel = new JPanel();
+    JPanel intakeAirTempPanel = new JPanel();
+    JPanel fuelPressurePanel = new JPanel();
+    JPanel ambientAirTempPanel = new JPanel();
+    JPanel barometricPressurePanel = new JPanel();
+    JPanel shortTermFuelTrimPanel = new JPanel();
+    JPanel longTermFuelTrimPanel = new JPanel();
+    JPanel controlModuleVoltagePanel = new JPanel();
+    
     // Labels for the information on the dashboard
-    JLabel engineTempLabel = new JLabel("Engine Temperature: 0°C");
-    JLabel seatbeltLabel = new JLabel("Seatbelt: OFF");
-    JLabel headLightLabel = new JLabel("Headlights: OFF");
-    JLabel ABSLabel = new JLabel("ABS: OFF");
-    JLabel gearLabel = new JLabel("Gear: N");
-    JLabel coolantTempLabel = new JLabel("Coolant Temperature: 0°C");
-    // Labels and icons for blinkers
-    JLabel blinkersPanelLeft = new JLabel();
-    JLabel blinkersPanelRight = new JLabel();
-    JLabel hazardLightLabel = new JLabel();
-    Icon leftIndicator = new ImageIcon("carIndicators\\leftIndicator.png");
-    Icon rightIndicator = new ImageIcon("carIndicators\\rightIndicator.png");
-    Icon triangle = new ImageIcon("carIndicators\\hazardLight.png");
+    JLabel coolantTempLabel = new JLabel();
+    JLabel throttlePositionLabel = new JLabel();
+    JLabel massAirFlowLabel = new JLabel();
+    JLabel fuelRateLabel = new JLabel();
+    JLabel timingAdvanceLabel = new JLabel();
+    JLabel intakeAirTempLabel = new JLabel();
+    JLabel fuelPressureLabel = new JLabel();
+    JLabel ambientAirTempLabel = new JLabel();
+    JLabel barometricPressureLabel = new JLabel();
+    JLabel shortTermFuelTrimLabel = new JLabel();
+    JLabel longTermFuelTrimLabel = new JLabel();
+    JLabel controlModuleVoltageLabel = new JLabel();
+    
     // Variables for values
     int speed = 50;
     int rpm = 1200;
     int fuel = 40;
-    int engineTemp = 0;
-    boolean leftBlinker = false;
-    boolean rightBlinker = false;
-    boolean emergency = false;
-    boolean seatbelt = false;
-    boolean headLight = false;
-    boolean ABS = false;
-    char gear = '1';
     int coolantTemp = 0;
-    // Variables for the dashboard theme
-    int currentDashboardTheme;
-    // Button
+    int throttlePosition = 0;
+    int massAirFlow = 0;
+    int fuelRate = 0;
+    int timingAdvance = 0;
+    int intakeAirTemp = 0;
+    int fuelPressure = 0;
+    int ambientAirTemp = 0;
+    int barometricPressure = 0;
+    int shortTermFuelTrim = 0;
+    int longTermFuelTrim = 0;
+    int controlModuleVoltage = 0;
+    
+    // Exit Button
     JButton exitButton = new JButton("Exit");
     // Textfield for time and date
     JTextField timeAndDateField = new JTextField();
@@ -81,12 +85,18 @@ public class dashboard {
      * Simulate everything with the CAN bus and Run tests
      * Create a method to fetch information from the CAN Bus and update the values each second
      */
-    dashboard() {
+    dashboard() throws FileNotFoundException, IOException {
         // Start the thread to fetch information from the CAN bus
+        //fetchInformation();
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                fetchInformation();
+                try {
+                    fetchInformation();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         });
         thread.start();
@@ -119,98 +129,191 @@ public class dashboard {
     }
     public void customizeMainPanel() {
         // Set up the main panel
-        mainPanel.setLayout(new GridLayout(4, 3));
+        mainPanel.setLayout(new GridLayout(4, 4));
         mainPanel.setBackground(backgroundColor);
         mainPanel.setForeground(foregroundColor);
-        rightBlinkerPanel.add(blinkersPanelRight);
-        leftBlinkerPanel.add(blinkersPanelLeft);
-        hazardLightBlink();
         // Customize the panels
         customizePanel(speedPanel);
         customizePanel(rpmPanel);
         customizePanel(fuelPanel);
-        customizePanel(enginetempPanel);
-        customizePanel(leftBlinkerPanel);
-        customizePanel(rightBlinkerPanel);
-        customizePanel(emergencyPanel);
-        customizePanel(seatbeltPanel);
-        customizePanel(headLightPanel);
-        customizePanel(ABSPanel);
-        customizePanel(gearPanel);
         customizePanel(coolantTempPanel);
-        // Customize the labels
-        customizeLabel(engineTempLabel);
-        customizeLabel(seatbeltLabel);
-        customizeLabel(headLightLabel);
-        customizeLabel(ABSLabel);
-        customizeLabel(gearLabel);
-        customizeLabel(coolantTempLabel);
+        customizePanel(throttlePositionPanel);
+        customizePanel(massAirFlowPanel);
+        customizePanel(fuelRatePanel);
+        customizePanel(timingAdvancePanel);
+        customizePanel(intakeAirTempPanel);
+        customizePanel(fuelPressurePanel);
+        customizePanel(ambientAirTempPanel);
+        customizePanel(barometricPressurePanel);
+        customizePanel(shortTermFuelTrimPanel);
+        customizePanel(longTermFuelTrimPanel);
+        customizePanel(controlModuleVoltagePanel);
+    
         // Add the information to the panels and center the labels
         speedPanel.add(new SemiCircularSpeedometer(speed));
         
         rpmPanel.add(new SemiCircularRPMMeter(rpm));
         
         fuelPanel.setLayout(new BoxLayout(fuelPanel, BoxLayout.Y_AXIS));
-        fuelPanel.add(Box.createVerticalGlue()); 
+        fuelPanel.removeAll();
+        fuelPanel.add(Box.createVerticalGlue());
         fuelPanel.add(new FuelBarPanel(fuel));
-        fuelPanel.add(Box.createVerticalGlue()); 
-
-        enginetempPanel.setLayout(new BoxLayout(enginetempPanel, BoxLayout.Y_AXIS));
-        enginetempPanel.add(Box.createVerticalGlue());
-        engineTempLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        enginetempPanel.add(engineTempLabel);
-        enginetempPanel.add(Box.createVerticalGlue());
-
-        seatbeltPanel.setLayout(new BoxLayout(seatbeltPanel, BoxLayout.Y_AXIS));
-        seatbeltPanel.add(Box.createVerticalGlue());
-        seatbeltLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        seatbeltPanel.add(seatbeltLabel);
-        seatbeltPanel.add(Box.createVerticalGlue());
-
-        headLightPanel.setLayout(new BoxLayout(headLightPanel, BoxLayout.Y_AXIS));
-        headLightPanel.add(Box.createVerticalGlue());
-        headLightLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        headLightPanel.add(headLightLabel);
-        headLightPanel.add(Box.createVerticalGlue());
-
-        emergencyPanel.setLayout(new BoxLayout(emergencyPanel, BoxLayout.Y_AXIS));
-        emergencyPanel.add(Box.createVerticalGlue());
-        hazardLightLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        emergencyPanel.add(hazardLightLabel);
-        emergencyPanel.add(Box.createVerticalGlue());
-
-        ABSPanel.setLayout(new BoxLayout(ABSPanel, BoxLayout.Y_AXIS));
-        ABSPanel.add(Box.createVerticalGlue());
-        ABSLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        ABSPanel.add(ABSLabel);
-        ABSPanel.add(Box.createVerticalGlue());
-
-        gearPanel.setLayout(new BoxLayout(gearPanel, BoxLayout.Y_AXIS));
-        gearPanel.add(Box.createVerticalGlue());
-        gearLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        gearPanel.add(gearLabel);
-        gearPanel.add(Box.createVerticalGlue());
-
+        fuelPanel.add(Box.createVerticalGlue());
+        fuelPanel.revalidate();
+        fuelPanel.repaint();
+        
+    
+        // Coolant Temperature
+        coolantTempLabel.setText("Coolant Temperature: \n" + coolantTemp);
         coolantTempPanel.setLayout(new BoxLayout(coolantTempPanel, BoxLayout.Y_AXIS));
-        coolantTempPanel.add(Box.createVerticalGlue());
-        coolantTempLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
-        coolantTempPanel.add(coolantTempLabel);
-        coolantTempPanel.add(Box.createVerticalGlue());
-
-        // Add the panels to the main panel
+        Box coolantTempBox = Box.createHorizontalBox(); 
+        coolantTempBox.add(Box.createHorizontalGlue()); 
+        coolantTempBox.add(coolantTempLabel);  
+        coolantTempBox.add(Box.createHorizontalGlue()); 
+        coolantTempPanel.add(Box.createVerticalGlue()); 
+        coolantTempPanel.add(coolantTempBox); 
+        coolantTempPanel.add(Box.createVerticalGlue()); 
+    
+        // Throttle Position
+        throttlePositionLabel.setText("Throttle Position: \n" + throttlePosition);
+        throttlePositionPanel.setLayout(new BoxLayout(throttlePositionPanel, BoxLayout.Y_AXIS));
+        Box throttlePositionBox = Box.createHorizontalBox();
+        throttlePositionBox.add(Box.createHorizontalGlue());
+        throttlePositionBox.add(throttlePositionLabel);
+        throttlePositionBox.add(Box.createHorizontalGlue());
+        throttlePositionPanel.add(Box.createVerticalGlue());
+        throttlePositionPanel.add(throttlePositionBox);
+        throttlePositionPanel.add(Box.createVerticalGlue());
+    
+        // Mass Air Flow
+        massAirFlowLabel.setText("Mass Air Flow: \n" + massAirFlow);
+        massAirFlowPanel.setLayout(new BoxLayout(massAirFlowPanel, BoxLayout.Y_AXIS));
+        Box massAirFlowBox = Box.createHorizontalBox();
+        massAirFlowBox.add(Box.createHorizontalGlue());
+        massAirFlowBox.add(massAirFlowLabel);
+        massAirFlowBox.add(Box.createHorizontalGlue());
+        massAirFlowPanel.add(Box.createVerticalGlue());
+        massAirFlowPanel.add(massAirFlowBox);
+        massAirFlowPanel.add(Box.createVerticalGlue());
+    
+        // Fuel Rate
+        fuelRateLabel.setText("Fuel Rate: \n" + fuelRate);
+        fuelRatePanel.setLayout(new BoxLayout(fuelRatePanel, BoxLayout.Y_AXIS));
+        Box fuelRateBox = Box.createHorizontalBox();
+        fuelRateBox.add(Box.createHorizontalGlue());
+        fuelRateBox.add(fuelRateLabel);
+        fuelRateBox.add(Box.createHorizontalGlue());
+        fuelRatePanel.add(Box.createVerticalGlue());
+        fuelRatePanel.add(fuelRateBox);
+        fuelRatePanel.add(Box.createVerticalGlue());
+    
+        // Timing Advance
+        timingAdvanceLabel.setText("Timing Advance: \n" + timingAdvance);
+        timingAdvancePanel.setLayout(new BoxLayout(timingAdvancePanel, BoxLayout.Y_AXIS));
+        Box timingAdvanceBox = Box.createHorizontalBox();
+        timingAdvanceBox.add(Box.createHorizontalGlue());
+        timingAdvanceBox.add(timingAdvanceLabel);
+        timingAdvanceBox.add(Box.createHorizontalGlue());
+        timingAdvancePanel.add(Box.createVerticalGlue());
+        timingAdvancePanel.add(timingAdvanceBox);
+        timingAdvancePanel.add(Box.createVerticalGlue());
+    
+        // Intake Air Temperature
+        intakeAirTempLabel.setText("Intake Air Temperature: \n" + intakeAirTemp);
+        intakeAirTempPanel.setLayout(new BoxLayout(intakeAirTempPanel, BoxLayout.Y_AXIS));
+        Box intakeAirTempBox = Box.createHorizontalBox();
+        intakeAirTempBox.add(Box.createHorizontalGlue());
+        intakeAirTempBox.add(intakeAirTempLabel);
+        intakeAirTempBox.add(Box.createHorizontalGlue());
+        intakeAirTempPanel.add(Box.createVerticalGlue());
+        intakeAirTempPanel.add(intakeAirTempBox);
+        intakeAirTempPanel.add(Box.createVerticalGlue());
+    
+        // Fuel Pressure
+        fuelPressureLabel.setText("Fuel Pressure: \n" + fuelPressure);
+        fuelPressurePanel.setLayout(new BoxLayout(fuelPressurePanel, BoxLayout.Y_AXIS));
+        Box fuelPressureBox = Box.createHorizontalBox();
+        fuelPressureBox.add(Box.createHorizontalGlue());
+        fuelPressureBox.add(fuelPressureLabel);
+        fuelPressureBox.add(Box.createHorizontalGlue());
+        fuelPressurePanel.add(Box.createVerticalGlue());
+        fuelPressurePanel.add(fuelPressureBox);
+        fuelPressurePanel.add(Box.createVerticalGlue());
+    
+        // Ambient Air Temperature
+        ambientAirTempLabel.setText("Ambient Air Temperature: \n" + ambientAirTemp);
+        ambientAirTempPanel.setLayout(new BoxLayout(ambientAirTempPanel, BoxLayout.Y_AXIS));
+        Box ambientAirTempBox = Box.createHorizontalBox();
+        ambientAirTempBox.add(Box.createHorizontalGlue());
+        ambientAirTempBox.add(ambientAirTempLabel);
+        ambientAirTempBox.add(Box.createHorizontalGlue());
+        ambientAirTempPanel.add(Box.createVerticalGlue());
+        ambientAirTempPanel.add(ambientAirTempBox);
+        ambientAirTempPanel.add(Box.createVerticalGlue());
+    
+        // Barometric Pressure
+        barometricPressureLabel.setText("Barometric Pressure: \n" + barometricPressure);
+        barometricPressurePanel.setLayout(new BoxLayout(barometricPressurePanel, BoxLayout.Y_AXIS));
+        Box barometricPressureBox = Box.createHorizontalBox();
+        barometricPressureBox.add(Box.createHorizontalGlue());
+        barometricPressureBox.add(barometricPressureLabel);
+        barometricPressureBox.add(Box.createHorizontalGlue());
+        barometricPressurePanel.add(Box.createVerticalGlue());
+        barometricPressurePanel.add(barometricPressureBox);
+        barometricPressurePanel.add(Box.createVerticalGlue());
+    
+        // Short Term Fuel Trim
+        shortTermFuelTrimLabel.setText("Short Term Fuel Trim: \n" + shortTermFuelTrim);
+        shortTermFuelTrimPanel.setLayout(new BoxLayout(shortTermFuelTrimPanel, BoxLayout.Y_AXIS));
+        Box shortTermFuelTrimBox = Box.createHorizontalBox();
+        shortTermFuelTrimBox.add(Box.createHorizontalGlue());
+        shortTermFuelTrimBox.add(shortTermFuelTrimLabel);
+        shortTermFuelTrimBox.add(Box.createHorizontalGlue());
+        shortTermFuelTrimPanel.add(Box.createVerticalGlue());
+        shortTermFuelTrimPanel.add(shortTermFuelTrimBox);
+        shortTermFuelTrimPanel.add(Box.createVerticalGlue());
+    
+        // Long Term Fuel Trim
+        longTermFuelTrimLabel.setText("Long Term Fuel Trim: \n" + longTermFuelTrim);
+        longTermFuelTrimPanel.setLayout(new BoxLayout(longTermFuelTrimPanel, BoxLayout.Y_AXIS));
+        Box longTermFuelTrimBox = Box.createHorizontalBox();
+        longTermFuelTrimBox.add(Box.createHorizontalGlue());
+        longTermFuelTrimBox.add(longTermFuelTrimLabel);
+        longTermFuelTrimBox.add(Box.createHorizontalGlue());
+        longTermFuelTrimPanel.add(Box.createVerticalGlue());
+        longTermFuelTrimPanel.add(longTermFuelTrimBox);
+        longTermFuelTrimPanel.add(Box.createVerticalGlue());
+    
+        // Control Module Voltage
+        controlModuleVoltageLabel.setText("Control Module Voltage: \n" + controlModuleVoltage);
+        controlModuleVoltagePanel.setLayout(new BoxLayout(controlModuleVoltagePanel, BoxLayout.Y_AXIS));
+        Box controlModuleVoltageBox = Box.createHorizontalBox();
+        controlModuleVoltageBox.add(Box.createHorizontalGlue());
+        controlModuleVoltageBox.add(controlModuleVoltageLabel);
+        controlModuleVoltageBox.add(Box.createHorizontalGlue());
+        controlModuleVoltagePanel.add(Box.createVerticalGlue());
+        controlModuleVoltagePanel.add(controlModuleVoltageBox);
+        controlModuleVoltagePanel.add(Box.createVerticalGlue());
+    
+        // Add all panels to the main panel
         mainPanel.add(speedPanel);
         mainPanel.add(rpmPanel);
-        mainPanel.add(fuelPanel);   
-        mainPanel.add(leftBlinkerPanel);
-        mainPanel.add(emergencyPanel);
-        mainPanel.add(rightBlinkerPanel);
-        mainPanel.add(enginetempPanel);
-        mainPanel.add(seatbeltPanel);
-        mainPanel.add(headLightPanel);
-        mainPanel.add(ABSPanel);
-        mainPanel.add(gearPanel);
-        mainPanel.add(coolantTempPanel);    
+        mainPanel.add(fuelPanel);
+        mainPanel.add(coolantTempPanel);
+        mainPanel.add(throttlePositionPanel);
+        mainPanel.add(massAirFlowPanel);
+        mainPanel.add(fuelRatePanel);
+        mainPanel.add(timingAdvancePanel);
+        mainPanel.add(intakeAirTempPanel);
+        mainPanel.add(fuelPressurePanel);
+        mainPanel.add(ambientAirTempPanel);
+        mainPanel.add(barometricPressurePanel);
+        mainPanel.add(shortTermFuelTrimPanel);
+        mainPanel.add(longTermFuelTrimPanel);
+        mainPanel.add(controlModuleVoltagePanel);
     }
+    
+    
     // Method to customize the bottom panel
     public void customizeBottomPanel() {
         exitButton = new JButton("Exit");
@@ -241,67 +344,41 @@ public class dashboard {
         label.setBackground(backgroundColor);
         label.setForeground(foregroundColor);
     }
-    // Method for the blinkers to pulsate
-    public void blink(boolean left) {
-        // Timer to toggle the icon ON and OFF
-        Timer timer = new Timer(500, null); // 500ms interval for blinking
-        JLabel blinkerPanel = left ? blinkersPanelLeft : blinkersPanelRight;       
-        Icon indicator = left ? leftIndicator : rightIndicator;
-
-        // ActionListener to toggle the icon
-        timer.addActionListener(new ActionListener() {
-            private boolean isOn = false;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (isOn) {
-                    blinkerPanel.setIcon(null); // Turn OFF
-                } else {
-                    blinkerPanel.setIcon(indicator); // Turn ON
-                    blinkerPanel.setHorizontalAlignment(SwingConstants.CENTER);
-                    blinkerPanel.setVerticalAlignment(SwingConstants.CENTER);
+   
+    public void fetchInformation() throws FileNotFoundException, IOException {
+        int[] data = new int[15];
+        try(BufferedReader br = new BufferedReader(new FileReader("carInfo.txt"))){
+            String ln;
+            int indx = 0;
+            
+            // Read each line
+            while((ln = br.readLine()) != null && indx < data.length){
+                String[] parts = ln.split(":");
+                if(parts.length > 1){
+                    try{
+                        data[indx] = Integer.parseInt(parts[1].trim());
+                        indx += 1;
+                    }catch(NumberFormatException e){
+                        System.out.println("Error parsing " + parts[1].trim());
+                    }
                 }
-                isOn = !isOn; // Toggle state
             }
-        });
-        
-        // Start the timer
-        timer.start();
-        // INTEGRATE IT WITH THE CAN BUS
-        new Timer(5000, e -> {
-            timer.stop(); 
-            blinkerPanel.setIcon(null);
-        }).start(); // Stops blinking after 5 seconds
-    }
-    public void hazardLightBlink() {
-        blink(true);
-        blink(false);
-        Timer timer = new Timer(500, null);
-        JLabel blinkerPanel = hazardLightLabel;
-        Icon indicator = triangle;
-        timer.addActionListener(new ActionListener() {
-            private boolean isOn = false;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (isOn) {
-                    blinkerPanel.setIcon(null); // Turn OFF
-                } else {
-                    blinkerPanel.setIcon(indicator); // Turn ON
-                    blinkerPanel.setHorizontalAlignment(SwingConstants.CENTER);
-                    blinkerPanel.setVerticalAlignment(SwingConstants.CENTER);
-                }
-                isOn = !isOn; // Toggle state
-            }
-        });
-        timer.start();
-        new Timer(5000, e -> {
-            timer.stop(); 
-            blinkerPanel.setIcon(null);
-        });
-    }
-    public void fetchInformation() {
-        // Fetch information from the CAN bus
-        // Integrate it with the CAN bus
+        }
+        speed = data[0];
+        fuel = data[1];
+        coolantTemp = data[2];
+        rpm = data[3];
+        throttlePosition = data[4];
+        massAirFlow = data[5];
+        fuelRate = data[6];
+        timingAdvance = data[7];
+        intakeAirTemp = data[8];
+        fuelPressure = data[9];
+        ambientAirTemp = data[10];
+        barometricPressure = data[11];
+        shortTermFuelTrim = data[12];
+        longTermFuelTrim = data[13];
+        controlModuleVoltage = data[14];
+        customizeMainPanel();
     }
 }

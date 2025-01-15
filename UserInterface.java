@@ -306,7 +306,12 @@ public class UserInterface extends JFrame {
         dashboard.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new dashboard();
+                try {
+                    new dashboard();
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             }
         });
         //Customizing the buttons

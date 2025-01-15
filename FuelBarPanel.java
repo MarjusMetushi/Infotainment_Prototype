@@ -7,20 +7,20 @@ import java.util.Properties;
 // Custom FuelBarPanel class
 public class FuelBarPanel extends JPanel {
     // Variable declaration
-    int currentFuel = 0;
+    int currentFuel;
     String fuelText = "";
     Color backgroundColor;
     Color foregroundColor;
     Properties config = new Properties();
 
     // Constructor to set up the fuel bar panel
-    public FuelBarPanel(int initialFuel) {
+    public FuelBarPanel(int fuelValue) {
         loadConfig();
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
 
         foregroundColor = Color.decode(config.getProperty("borderColor1"));
         setPreferredSize(new Dimension(280, 50)); // Set default dimensions for horizontal bar
-        currentFuel = initialFuel;
+        currentFuel = fuelValue;
         fuelText = currentFuel + "%";
     }
 
