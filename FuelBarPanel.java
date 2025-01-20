@@ -11,17 +11,18 @@ public class FuelBarPanel extends JPanel {
     String fuelText = "";
     Color backgroundColor;
     Color foregroundColor;
+    Color textColor;
     Properties config = new Properties();
 
     // Constructor to set up the fuel bar panel
     public FuelBarPanel(int fuelValue) {
         loadConfig();
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
-
+        textColor = getColorFromString(config.getProperty("foregroundColor"));
         foregroundColor = Color.decode(config.getProperty("borderColor1"));
         setPreferredSize(new Dimension(280, 50)); // Set default dimensions for horizontal bar
         currentFuel = fuelValue;
-        fuelText = currentFuel + "%";
+        fuelText = "Fuel: " + currentFuel + "%";
     }
 
     // Method to load the configurations
@@ -53,7 +54,7 @@ public class FuelBarPanel extends JPanel {
     // Setting the fuel level (0-100)
     public void setCurrentFuel(int fuel) {
         currentFuel = Math.max(0, Math.min(100, fuel));
-        fuelText = currentFuel + "%";
+        fuelText = "Fuel" + currentFuel + "%";
         repaint();
     }
 
@@ -70,11 +71,13 @@ public class FuelBarPanel extends JPanel {
         int fillWidth = (currentFuel * getWidth()) / 100;
 
         // Draw the segment to be filled from left to right
-        g.setColor(foregroundColor);
+        g.setColor(Color.BLUE);
         g.fillRect(0, 0, fillWidth, getHeight());
 
         // Draw the fuel percentage text at the bottom center
-        g.setColor(foregroundColor); // Choose a contrasting color for text
+        Font boldFont = new Font("Arial", Font.BOLD, 16);
+        g.setFont(boldFont); 
+        g.setColor(textColor); // Choose a contrasting color for text
         FontMetrics metrics = g.getFontMetrics();
         int textWidth = metrics.stringWidth(fuelText);
         int textHeight = metrics.getHeight();

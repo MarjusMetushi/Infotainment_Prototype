@@ -5,6 +5,8 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -15,7 +17,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-// TODO: Fix the issue with the first 3 panels not showing information
 // Order: speed, fuel level, coolant temp, engine temp, gear, rpm, throttle pos, mass air flow, fuel rate, timing advance, intake air temp, oxygen sensors, fuel pressure, ambient air temp, engine coolant temp, barometric pressure, short term fuel trim, long term fuel trim, fuel type, control module voltage
 public class dashboard {
     JDialog dialog;
@@ -162,7 +163,6 @@ public class dashboard {
         fuelPanel.revalidate();
         fuelPanel.repaint();
         
-    
         // Coolant Temperature
         coolantTempLabel.setText("Coolant Temperature: \n" + coolantTemp);
         coolantTempPanel.setLayout(new BoxLayout(coolantTempPanel, BoxLayout.Y_AXIS));
@@ -173,7 +173,7 @@ public class dashboard {
         coolantTempPanel.add(Box.createVerticalGlue()); 
         coolantTempPanel.add(coolantTempBox); 
         coolantTempPanel.add(Box.createVerticalGlue()); 
-    
+        customizeLabel(coolantTempLabel);
         // Throttle Position
         throttlePositionLabel.setText("Throttle Position: \n" + throttlePosition);
         throttlePositionPanel.setLayout(new BoxLayout(throttlePositionPanel, BoxLayout.Y_AXIS));
@@ -184,7 +184,7 @@ public class dashboard {
         throttlePositionPanel.add(Box.createVerticalGlue());
         throttlePositionPanel.add(throttlePositionBox);
         throttlePositionPanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(throttlePositionLabel);
         // Mass Air Flow
         massAirFlowLabel.setText("Mass Air Flow: \n" + massAirFlow);
         massAirFlowPanel.setLayout(new BoxLayout(massAirFlowPanel, BoxLayout.Y_AXIS));
@@ -195,7 +195,7 @@ public class dashboard {
         massAirFlowPanel.add(Box.createVerticalGlue());
         massAirFlowPanel.add(massAirFlowBox);
         massAirFlowPanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(massAirFlowLabel);
         // Fuel Rate
         fuelRateLabel.setText("Fuel Rate: \n" + fuelRate);
         fuelRatePanel.setLayout(new BoxLayout(fuelRatePanel, BoxLayout.Y_AXIS));
@@ -206,7 +206,7 @@ public class dashboard {
         fuelRatePanel.add(Box.createVerticalGlue());
         fuelRatePanel.add(fuelRateBox);
         fuelRatePanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(fuelRateLabel);
         // Timing Advance
         timingAdvanceLabel.setText("Timing Advance: \n" + timingAdvance);
         timingAdvancePanel.setLayout(new BoxLayout(timingAdvancePanel, BoxLayout.Y_AXIS));
@@ -217,7 +217,7 @@ public class dashboard {
         timingAdvancePanel.add(Box.createVerticalGlue());
         timingAdvancePanel.add(timingAdvanceBox);
         timingAdvancePanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(timingAdvanceLabel);
         // Intake Air Temperature
         intakeAirTempLabel.setText("Intake Air Temperature: \n" + intakeAirTemp);
         intakeAirTempPanel.setLayout(new BoxLayout(intakeAirTempPanel, BoxLayout.Y_AXIS));
@@ -228,7 +228,7 @@ public class dashboard {
         intakeAirTempPanel.add(Box.createVerticalGlue());
         intakeAirTempPanel.add(intakeAirTempBox);
         intakeAirTempPanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(intakeAirTempLabel);
         // Fuel Pressure
         fuelPressureLabel.setText("Fuel Pressure: \n" + fuelPressure);
         fuelPressurePanel.setLayout(new BoxLayout(fuelPressurePanel, BoxLayout.Y_AXIS));
@@ -239,7 +239,7 @@ public class dashboard {
         fuelPressurePanel.add(Box.createVerticalGlue());
         fuelPressurePanel.add(fuelPressureBox);
         fuelPressurePanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(fuelPressureLabel);
         // Ambient Air Temperature
         ambientAirTempLabel.setText("Ambient Air Temperature: \n" + ambientAirTemp);
         ambientAirTempPanel.setLayout(new BoxLayout(ambientAirTempPanel, BoxLayout.Y_AXIS));
@@ -250,7 +250,7 @@ public class dashboard {
         ambientAirTempPanel.add(Box.createVerticalGlue());
         ambientAirTempPanel.add(ambientAirTempBox);
         ambientAirTempPanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(ambientAirTempLabel);
         // Barometric Pressure
         barometricPressureLabel.setText("Barometric Pressure: \n" + barometricPressure);
         barometricPressurePanel.setLayout(new BoxLayout(barometricPressurePanel, BoxLayout.Y_AXIS));
@@ -261,7 +261,7 @@ public class dashboard {
         barometricPressurePanel.add(Box.createVerticalGlue());
         barometricPressurePanel.add(barometricPressureBox);
         barometricPressurePanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(barometricPressureLabel);
         // Short Term Fuel Trim
         shortTermFuelTrimLabel.setText("Short Term Fuel Trim: \n" + shortTermFuelTrim);
         shortTermFuelTrimPanel.setLayout(new BoxLayout(shortTermFuelTrimPanel, BoxLayout.Y_AXIS));
@@ -272,7 +272,7 @@ public class dashboard {
         shortTermFuelTrimPanel.add(Box.createVerticalGlue());
         shortTermFuelTrimPanel.add(shortTermFuelTrimBox);
         shortTermFuelTrimPanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(shortTermFuelTrimLabel);
         // Long Term Fuel Trim
         longTermFuelTrimLabel.setText("Long Term Fuel Trim: \n" + longTermFuelTrim);
         longTermFuelTrimPanel.setLayout(new BoxLayout(longTermFuelTrimPanel, BoxLayout.Y_AXIS));
@@ -283,7 +283,7 @@ public class dashboard {
         longTermFuelTrimPanel.add(Box.createVerticalGlue());
         longTermFuelTrimPanel.add(longTermFuelTrimBox);
         longTermFuelTrimPanel.add(Box.createVerticalGlue());
-    
+        customizeLabel(longTermFuelTrimLabel);
         // Control Module Voltage
         controlModuleVoltageLabel.setText("Control Module Voltage: \n" + controlModuleVoltage);
         controlModuleVoltagePanel.setLayout(new BoxLayout(controlModuleVoltagePanel, BoxLayout.Y_AXIS));
@@ -294,6 +294,7 @@ public class dashboard {
         controlModuleVoltagePanel.add(Box.createVerticalGlue());
         controlModuleVoltagePanel.add(controlModuleVoltageBox);
         controlModuleVoltagePanel.add(Box.createVerticalGlue());
+        customizeLabel(controlModuleVoltageLabel);
     
         // Add all panels to the main panel
         mainPanel.add(speedPanel);
@@ -347,23 +348,25 @@ public class dashboard {
    
     public void fetchInformation() throws FileNotFoundException, IOException {
         int[] data = new int[15];
-        try(BufferedReader br = new BufferedReader(new FileReader("carInfo.txt"))){
+        try (BufferedReader br = new BufferedReader(new FileReader("carInfo.txt"))) {
             String ln;
             int indx = 0;
-            
+
             // Read each line
-            while((ln = br.readLine()) != null && indx < data.length){
+            while ((ln = br.readLine()) != null && indx < data.length) {
                 String[] parts = ln.split(":");
-                if(parts.length > 1){
-                    try{
+                if (parts.length > 1) {
+                    try {
                         data[indx] = Integer.parseInt(parts[1].trim());
                         indx += 1;
-                    }catch(NumberFormatException e){
+                    } catch (NumberFormatException e) {
                         System.out.println("Error parsing " + parts[1].trim());
                     }
                 }
             }
         }
+
+        // Update values
         speed = data[0];
         fuel = data[1];
         coolantTemp = data[2];
@@ -379,6 +382,9 @@ public class dashboard {
         shortTermFuelTrim = data[12];
         longTermFuelTrim = data[13];
         controlModuleVoltage = data[14];
-        customizeMainPanel();
+
+        // Dynamically update the UI
+        SwingUtilities.invokeLater(() -> customizeMainPanel());
     }
+
 }

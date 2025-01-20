@@ -16,12 +16,16 @@ openSettings = False
 settingsPanel = None
 timer_running = False
 
-# fetch everything from config.properties
-with open("config.properties", "r") as file:
+with open('config.properties', 'r') as file:
     for line in file:
-        key, value = line.split("=",1)
-        config[key.strip()] = value.strip()
-# assign the values to the variables
+        line = line.strip()  # Remove leading/trailing whitespace
+        if "=" in line:  # Check if the line contains '='
+            key, value = line.split("=", 1)  # Safely split only if '=' exists
+            config[key.strip()] = value.strip()  # Add to dictionary
+        else:
+            print(f"Skipping invalid line: {line}")  # Optional debug statement
+
+# Assign the values to the variables
 backgroundColor = config.get("backgroundColor")
 foregroundColor = config.get("foregroundColor")
 borderColor1 = config.get("borderColor1")

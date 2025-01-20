@@ -1,11 +1,25 @@
 import obd
 import time
-# Order: Order: speed, fuel level, coolant temp, engine temp, gear, rpm, throttle pos, mass air flow, fuel rate, timing advance, intake air temp, oxygen sensors, fuel pressure, ambient air temp, engine coolant temp, barometric pressure, short term fuel trim, long term fuel trim, fuel type, control module voltage
+
 # Method to write car information to a file
 def write_to_file(data):
     with open("carInfo.txt", "w") as file:
-        for key, value in data.items():
-            file.write(f"{key}: {value}\n")
+        # Write data in the specified format
+        file.write(f"speed:{data.get('Speed', '-1')}\n")
+        file.write(f"fuel:{data.get('Fuel Level', '-1')}\n")
+        file.write(f"coolantTemp:{data.get('Coolant Temperature', '-1')}\n")
+        file.write(f"rpm:{data.get('RPM', '-1')}\n")
+        file.write(f"throttlePosition:{data.get('Throttle Position', '-1')}\n")
+        file.write(f"massAirFlow:{data.get('Mass Air Flow', '-1')}\n")
+        file.write(f"fuelRate:{data.get('Fuel Rate', '-1')}\n")
+        file.write(f"timingAdvance:{data.get('Timing Advance', '-1')}\n")
+        file.write(f"intakeAirTemp:{data.get('Intake Air Temperature', '-1')}\n")
+        file.write(f"fuelPressure:{data.get('Fuel Pressure', '-1')}\n")
+        file.write(f"ambientAirTemp:{data.get('Ambient Air Temperature', '-1')}\n")
+        file.write(f"barometricPressure:{data.get('Barometric Pressure', '-1')}\n")
+        file.write(f"shortTermFuelTrim:{data.get('Short Term Fuel Trim', '-1')}\n")
+        file.write(f"longTermFuelTrim:{data.get('Long Term Fuel Trim', '-1')}\n")
+        file.write(f"controlModuleVoltage:{data.get('Control Module Voltage', '-1')}\n")
 
 # Query data from OBD-II
 def query_data(connection):
@@ -34,7 +48,7 @@ def query_data(connection):
         if response.is_success():
             results[label] = response.value
         else:
-            results[label] = "N/A"  # Mark as not available
+            results[label] = "-1"  # Mark as not available
 
     write_to_file(results)
 
