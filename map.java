@@ -3,23 +3,23 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Properties;
+import javax.swing.Timer;
+import java.util.Date;
+
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebView;
 public class map {
     /*
-     * Map application step by step guide
-     * 1. Create the frame and the main interface
-     * 2. Download the jar file of OSMDroid and move it here
-     * 3. Read the documentation of OSMDroid
-     * 4. Create the map
-     * 5. Create the marker
-     * 6. Create the overlay
-     * 7. Create the zoom control
-     * 8. Create the scale control
+        Just open the web page of the map using webview and javafx
+        Use the js api for enhancement
      */
     // Declare the variables
     JDialog dialog;
@@ -78,7 +78,6 @@ public class map {
             default -> Color.WHITE;
         };
     }
-    // Method to costumize the top panel
     public void costumizeTopPanel() {
         JTextField timeAndDateField = new JTextField("Time: 19:20, Date: 2024-11-22");
         timeAndDateField.setHorizontalAlignment(JTextField.CENTER);
@@ -86,12 +85,30 @@ public class map {
         timeAndDateField.setBackground(backgroundColor);
         timeAndDateField.setForeground(foregroundColor);
         timeAndDateField.setBorder(BorderFactory.createLineBorder(buttonBorderColor, 2));
-        new Time(timeAndDateField, "HH:mm:ss, yyyy-MM-dd");
+
+        Timer timer = new Timer(1000, e -> {
+            SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss, yyyy-MM-dd");
+            String dateString = formatter.format(new Date());
+            timeAndDateField.setText("Time: " + dateString);
+        });
+        timer.start();
+
         topPanel.add(timeAndDateField, BorderLayout.CENTER);
     }
-    // Method to costumize the main panel
     public void costumizeMainPanel() {
-        
+        JFXPanel jfxPanel = new JFXPanel(); // JavaFX panel inside Swing
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.add(jfxPanel, BorderLayout.CENTER);
+    
+        Platform.runLater(() -> {
+            WebView webView = new WebView();
+            webView.getEngine().load("https://maps.google.com"); // Load Google Maps
+    
+            // Resize the WebView to make it smaller
+            webView.setPrefSize(200, 200); // Set width and height for a smaller view
+    
+            jfxPanel.setScene(new Scene(webView));
+        });
     }
     // Method to costumize the bottom panel
     public void costumizeBottomPanel() {

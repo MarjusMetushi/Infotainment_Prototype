@@ -3,38 +3,25 @@
   "configurations": [
     {
       "type": "java",
-      "name": "GalleryWrapper",
-      "request": "launch",
-      "mainClass": "GalleryWrapper",
-      "projectName": "project_39933c62"
-    },
-    {
-      "type": "java",
-      "name": "sys",
-      "request": "launch",
-      "mainClass": "sys",
-      "projectName": "project_304a263e"
-    },
-    {
-      "type": "java",
-      "name": "VolumeGetterCoreAudio",
-      "request": "launch",
-      "mainClass": "VolumeGetterCoreAudio",
-      "projectName": "project_39933c62"
-    },
-    {
-      "type": "java",
-      "name": "VolumeGetterWinmm",
-      "request": "launch",
-      "mainClass": "VolumeGetterWinmm",
-      "projectName": "project_39933c62"
-    },
-    {
-      "type": "java",
       "name": "sys",
       "request": "launch",
       "mainClass": "sys",
       "projectName": "project_39933c62"
+    },
+    {
+      "type": "java",
+      "name": "Run sys",
+      "request": "launch",
+      "mainClass": "sys",
+      "projectName": "project"
+    },
+    {
+      "type": "java",
+      "name": "Run map",
+      "request": "launch",
+      "mainClass": "map",
+      "vmArgs": "--module-path C:\\Users\\mariu\\Desktop\\project\\javafx-sdk-17.0.2\\lib --add-modules javafx.controls,javafx.fxml",
+      "projectName": "project"
     },
     {
       "name": "C/C++ Runner: Debug Session",
