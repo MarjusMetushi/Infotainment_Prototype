@@ -1,5 +1,8 @@
-
 {
+  "java.project.referencedLibraries": [
+    "C:/Users/mariu/Desktop/javafx-sdk-21.0.5/lib/*.jar",
+    "C:/Users/mariu/Desktop/project/lib/*.jar"
+  ],
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",

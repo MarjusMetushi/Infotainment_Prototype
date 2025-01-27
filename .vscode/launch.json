@@ -6,21 +6,23 @@
       "name": "sys",
       "request": "launch",
       "mainClass": "sys",
-      "projectName": "project_39933c62"
+      "projectName": "project_39933c62",
+      "vmArgs": "--module-path C:/Users/mariu/Desktop/javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.swing,javafx.web"
     },
     {
       "type": "java",
       "name": "Run sys",
       "request": "launch",
       "mainClass": "sys",
-      "projectName": "project"
+      "projectName": "project",
+      "vmArgs": "--module-path C:/Users/mariu/Desktop/javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.swing,javafx.web"
     },
     {
       "type": "java",
       "name": "Run map",
       "request": "launch",
       "mainClass": "map",
-      "vmArgs": "--module-path C:\\Users\\mariu\\Desktop\\project\\javafx-sdk-17.0.2\\lib --add-modules javafx.controls,javafx.fxml",
+      "vmArgs": "--module-path C:/Users/mariu/Desktop/javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.swing,javafx.web",
       "projectName": "project"
     },
     {
