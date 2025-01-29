@@ -1,7 +1,6 @@
 {
   "java.project.referencedLibraries": [
-    "javafx-sdk-21.0.5/lib/*.jar",
-    "lib/*.jar"
+    "c:\\Users\\mariu\\Desktop\\project\\lib\\*"
   ],
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
@@ -63,5 +62,6 @@
   "files.associations": {
     "*.embeddedhtml": "html",
     "ostream": "cpp"
-  }
+  },
+  "java.debug.settings.onBuildFailureProceed": true
 }

@@ -6,24 +6,21 @@
       "name": "sys",
       "request": "launch",
       "mainClass": "sys",
-      "projectName": "project_39933c62",
-      "vmArgs": "--module-path javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.swing,javafx.web"
+      "projectName": "project_39933c62"
     },
     {
       "type": "java",
-      "name": "Run sys",
-      "request": "launch",
-      "mainClass": "sys",
-      "projectName": "project",
-      "vmArgs": "--module-path javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.swing,javafx.web"
-    },
-    {
-      "type": "java",
-      "name": "Run map",
+      "name": "map",
       "request": "launch",
       "mainClass": "map",
-      "vmArgs": "--module-path javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.swing,javafx.web",
-      "projectName": "project"
+      "projectName": "project_39933c62"
+    },
+    {
+      "type": "java",
+      "name": "sys",
+      "request": "launch",
+      "mainClass": "javafx.base/src.sys",
+      "projectName": "project_39933c62"
     },
     {
       "name": "C/C++ Runner: Debug Session",

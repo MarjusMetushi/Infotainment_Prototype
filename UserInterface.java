@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -5,6 +6,7 @@ import java.util.*;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
+
 /*
     TO DO!
  *  Add the dashcam functionality

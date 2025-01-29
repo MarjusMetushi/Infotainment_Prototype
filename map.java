@@ -1,3 +1,4 @@
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
@@ -14,7 +15,7 @@ public class map extends Application {
         WebEngine webEngine = webView.getEngine();
 
         // Load the Google Maps URL
-        webEngine.load("https://www.google.com/maps");
+        webEngine.load("https://open.spotify.com/");
 
         // Create a layout and add the WebView to it
         StackPane root = new StackPane();

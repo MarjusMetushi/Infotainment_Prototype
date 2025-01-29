@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,7 +41,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 /*
     Later:
  *  Replace dummy pictures with the actual pictures
