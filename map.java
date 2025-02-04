@@ -33,8 +33,5 @@ public class map extends Application {
     }
 }
 // Compile - javac --module-path javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.web -d output map.java
-
-// Run - java --module-path javafx-sdk-21.0.5/lib --add-modules javafx.controls,javafx.fxml,javafx.web -cp output map
-
 // Run - java --module-path C:\Users\mariu\Desktop\javafx-sdk-21.0.5\lib --add-modules javafx.controls,javafx.fxml,javafx.web -cp output map
 
