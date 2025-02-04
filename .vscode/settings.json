@@ -3,6 +3,7 @@
     "C:/Users/mariu/Desktop/project/lib/*",
     "C:/Users/mariu/Desktop/project/javafx-sdk-21.0.5"
   ],
+
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",
@@ -64,5 +65,6 @@
     "*.embeddedhtml": "html",
     "ostream": "cpp"
   },
-  "java.debug.settings.onBuildFailureProceed": true
+  "java.debug.settings.onBuildFailureProceed": true,
+  "C_Cpp_Runner.msvcSecureNoWarnings": false
 }
