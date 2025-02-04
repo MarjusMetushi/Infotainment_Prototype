@@ -1,0 +1,15 @@
+speed:100  
+fuel:50  
+coolantTemp:33  
+rpm:41  
+throttlePosition:10  
+massAirFlow:15  
+fuelRate:13  
+timingAdvance:66  
+intakeAirTemp:7  
+fuelPressure:1  
+ambientAirTemp:0  
+barometricPressure:1  
+shortTermFuelTrim:1  
+longTermFuelTrim:1  
+controlModuleVoltage:1
