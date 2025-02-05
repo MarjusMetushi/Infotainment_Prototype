@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "maps",
+      "request": "launch",
+      "mainClass": "maps",
+      "projectName": "project_39933c62"
+    },
+    {
+      "type": "java",
       "name": "sys",
       "request": "launch",
       "mainClass": "sys",
@@ -19,7 +26,6 @@
       "type": "java",
       "name": "sys",
       "request": "launch",
-      "mainClass": "javafx.base/src.sys",
       "projectName": "project_39933c62"
     },
     {
