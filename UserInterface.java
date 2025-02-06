@@ -318,6 +318,7 @@ public class UserInterface extends JFrame {
             }
         });
         maps.addActionListener(new ActionListener() {
+            @SuppressWarnings("static-access")
             @Override
             public void actionPerformed(ActionEvent e) {
                 new maps().openMaps();

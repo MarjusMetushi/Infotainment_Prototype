@@ -77,6 +77,43 @@ public class Media {
         JButton auxButton = new JButton("AUX");
         JButton usbButton = new JButton("USB");
         JButton mirroringButton = new JButton("Mirroring");
+
+        ytmusicButton.addActionListener(new ActionListener() {
+            @SuppressWarnings("static-access")
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new youtubeapp().openYoutube();
+            }
+        });
+
+        spotifyButton.addActionListener(new ActionListener() {
+            @SuppressWarnings("static-access")
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new Spotifyapp().openSpotify();
+            }
+        });
+
+        kodiButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new Kodi();
+            }
+        });
+
+        usbButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new usb();
+            }
+        });
+
+        mirroringButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new screenMirroring();
+            }
+        });
         
         // Testing
         auxButton.addActionListener(new ActionListener() {
