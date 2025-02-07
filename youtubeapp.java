@@ -20,7 +20,7 @@ public class youtubeapp {
                 Process process = Runtime.getRuntime().exec("cmd /c where Youtube");
                 return process.getInputStream().read() != -1; 
             } else if (os.contains("mac")) {
-                Process process = Runtime.getRuntime().exec("mdfind 'kMDItemCFBundleIdentifier == \"com.google.ios.Youtube\"'");
+                Process process = Runtime.getRuntime().exec("mdfind 'kMDItemCFBundleIdentifier == \"com.google.ios.youtube\"'");
                 return process.getInputStream().read() != -1;
             } else if (os.contains("nix") || os.contains("nux")) {
                 Process process = Runtime.getRuntime().exec("which Youtube");
