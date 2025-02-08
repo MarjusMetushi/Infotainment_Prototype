@@ -3,6 +3,7 @@ import java.net.URI;
 import java.io.IOException;
 
 public class Spotifyapp {
+    // TODO: Make a bash file to install spotify and a method for it 
     // Method to open Spotify if installed as an app otherwise as a website
     public static void openSpotify() {
         if (isSpotifyInstalled()) {

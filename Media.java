@@ -1,4 +1,3 @@
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -95,9 +94,15 @@ public class Media {
         });
 
         kodiButton.addActionListener(new ActionListener() {
+            @SuppressWarnings("static-access")
             @Override
             public void actionPerformed(ActionEvent e) {
-                new Kodi();
+                try {
+                    new Kodi().openKodi();
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             }
         });
 
