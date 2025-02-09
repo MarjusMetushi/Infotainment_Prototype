@@ -14,6 +14,7 @@ https://www.python.org/downloads/
 * OpenCV - pip install opencv-python
 * TKinter - pip install tkinter
 * OBD-II reader - pip install obd & pip install python-can
+* chromecast - pip install pychromecast
 ## Install c++
 https://www.bloodshed.net/
 ### Dependencies/Libraries used:
