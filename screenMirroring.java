@@ -89,6 +89,7 @@ public class screenMirroring {
 
         iphone.addActionListener(e -> {
             try {
+                // Install and open 5kplayer
                 iphoneScreenMirroring();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
@@ -98,8 +99,8 @@ public class screenMirroring {
 
         android.addActionListener(e -> {
             try {
-                ProcessBuilder pb = new ProcessBuilder("python","androidMirroring.py");
-                pb.start();
+                //Use raspberry pi miraclecast to mirror the android screen and make an installer and a set up code that will run on the raspberry pi
+                connectandroid();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
@@ -115,4 +116,5 @@ public class screenMirroring {
     }
 
     public static void iphoneScreenMirroring() throws IOException {}
+    public static void connectandroid() throws IOException {}
 }
