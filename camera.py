@@ -23,7 +23,7 @@ with open('config.properties', 'r') as file:
             key, value = line.split("=", 1)  # Safely split only if '=' exists
             config[key.strip()] = value.strip()  # Add to dictionary
         else:
-            print(f"Skipping invalid line: {line}")  # Optional debug statement
+            print(f"Skipping invalid line: {line}")  # debugging
 
 # Assign the values to the variables
 backgroundColor = config.get("backgroundColor")

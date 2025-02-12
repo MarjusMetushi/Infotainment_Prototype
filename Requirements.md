@@ -7,6 +7,8 @@ https://www.oracle.com/java/technologies/downloads/
 * nircmd.exe from nirsoft
 * getSystemVolume.exe standalone custom standalone program made from getSystemVolume.cpp
 * ffmpeg.exe from ffmpeg
+* scrcpy from scrcpy
+* adb (android debug bridge)
 ## Install python
 https://www.python.org/downloads/
 ### Dependencies/Libraries used:
@@ -14,7 +16,6 @@ https://www.python.org/downloads/
 * OpenCV - pip install opencv-python
 * TKinter - pip install tkinter
 * OBD-II reader - pip install obd & pip install python-can
-* chromecast - pip install pychromecast
 ## Install c++
 https://www.bloodshed.net/
 ### Dependencies/Libraries used:
@@ -24,3 +25,6 @@ https://www.bloodshed.net/
 ## Install the following libraries:
 *  ALSA-utils -> sudo apt update && sudo apt install alsa-utils
 *  FFMPEG -> sudo apt install ffmpeg
+*  adb scrcpy -> sudo apt install adb scrcpy
+
+(Make sure to make an installer for everything)
