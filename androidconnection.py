@@ -1,18 +1,16 @@
 # Steps (1st time connection):
-# User
 # 1. wire up the phone to the computer with usb cable
 # 2. Settings -> About phone -> Software information -> tap build number 7 times
 # 3. Settings -> Developer options -> enable USB debugging
 # 4. Settings -> About phone -> Status information -> IP address -> give 192.168...
 # 5. Always allow the device connected with to access the phone/tablet
-# Code: 
+# Terminal: 
 # adb tcpip 5555
 # adb connect 192.168...:5555
 # run scrcpy
 # Save the IP address for easy access next time and let the user to chose their IP
 
-# Steps (After first time connection)
-# Code:
+# Steps (After first time connection):
 # show the saved IP addresses
 # User chooses the IP address
 # adb tcpip 5555
@@ -22,10 +20,12 @@
 
 # TODO: ADD PICTURES TO THE TUTORIAL FOR EASIER UNDERSTANDING
 # TODO: ADD A REMOVE, RENAME AND INFORMATION BUTTON FOR EACH IP ADDRESS
-# TODO: START THE PROCESSES 
 # TODO: ADD A SETTINGS BUTTON TO REDIRECT THE USER TO THE SETTINGS APP
 # TODO: ADD A CLOSE BUTTON
+
+import subprocess
 import tkinter as tk
+import time 
 
 IPlist = []
 config = {}
@@ -63,9 +63,26 @@ def loadIPs():
             IPlist.append(line.strip()) # add each line to the IPlist list
 
 # Function to connect the IP to ADB
-def connect(root, ip):
-    """Connect the devices through ADB"""
-    root.destroy()
+def connect(ip):
+    """Connect the device through ADB and start scrcpy"""
+    ADB_PATH = "scrcpywin/adb.exe"
+    SCRCPY_PATH = "scrcpywin/scrcpy.exe"
+
+    # Restart ADB and connect
+    subprocess.run([ADB_PATH, "kill-server"])
+    subprocess.run([ADB_PATH, "start-server"])
+    subprocess.run([ADB_PATH, "tcpip", "5555"])
+    subprocess.run([ADB_PATH, "connect", f"{ip}:5555"])
+    
+    time.sleep(2)  # Allow ADB to recognize the device
+    result = subprocess.run([ADB_PATH, "devices"], capture_output=True, text=True)
+    
+    if ip not in result.stdout:
+        return
+
+    print("✅ Device connected. Starting scrcpy...")
+    subprocess.Popen([SCRCPY_PATH])  # Run scrcpy without "--adb"
+
 
 # Function to show the tutorial
 def showTutorial():
@@ -228,7 +245,7 @@ def main():
 
     # Create buttons with IP addresses as text
     for ip in IPlist:
-        button = tk.Button(button_frame, text=ip, command=lambda ip=ip: connect(root, ip), **buttonStyle)
+        button = tk.Button(button_frame, text=ip, command=lambda ip=ip: connect(ip), **buttonStyle)
         button.pack(pady=5, fill="x")
 
     # Function to update scroll region
