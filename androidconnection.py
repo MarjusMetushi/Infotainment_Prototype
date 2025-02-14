@@ -17,17 +17,14 @@
 # adb connect 192.168...:5555
 # run scrcpy
 
-
+# exit, more, add device
 # TODO: ADD PICTURES TO THE TUTORIAL FOR EASIER UNDERSTANDING
-# TODO: ADD A REMOVE, RENAME AND INFORMATION BUTTON FOR EACH IP ADDRESS
-# TODO: ADD A SETTINGS BUTTON TO REDIRECT THE USER TO THE SETTINGS APP
-# TODO: ADD A CLOSE BUTTON
 
 import subprocess
 import tkinter as tk
 import time 
 
-IPlist = []
+IPlist = {}
 config = {}
 currentInput = ""
 # Open the config file
@@ -41,30 +38,94 @@ with open('config.properties', 'r') as file:
 backgroundColor = config.get("backgroundColor", "gray") # Get the background color from the config file
 foregroundColor = config.get("foregroundColor", "white") # Get the foreground color from the config file
 
-# Function to add a string IP to a file
 def addIPtofile(ip):
-    """Add a string IP to a file"""
+    """Adds a string IP to a file"""
+    device_count = sum(1 for ip in IPlist if ip.replace(".", "").isdigit()) + 1  # Count only IPs
     with open("savedIP.txt", "a") as file:
-        file.write(ip + "\n") # Write the IP to the file
+        file.write(f"{ip} = Device {device_count}\n")  # Append the correct device number
 
 # Function to clear the root
 def clearRoot(root):
-    """Clear the root window"""
+    """Clears the root window"""
     for widget in root.winfo_children():
         widget.destroy() # delete each component of the root window
 
+def deletefromlist(ip):
+    """Deletes an IP from the list and storage (savedIP.txt)"""
+    global IPlist
+
+    # Find keys to delete by iterating
+    keys_to_delete = [key for key, value in IPlist.items() if value == ip or key == ip]
+
+    # Delete keys after iteration
+    for key in keys_to_delete:
+        del IPlist[key]
+
+    # Rewrite the file without the deleted entry
+    with open('savedIP.txt', 'w') as f:
+        for key, value in IPlist.items():
+            f.write(f"{value} = {key}\n")
+
+            
+# Function to rename a certain IP
+def renameIP(ip):
+    """Renames an IP"""
+
 # Function to load the IPs from a text file
 def loadIPs():
-    """Load the IPs from a text file"""
+    """Loads the IPs from a text file"""
     global IPlist
-    IPlist = []
-    with open("savedIP.txt", "r") as file: # open the file
+    IPlist = {}
+    with open("savedIP.txt", "r") as file:  # Open the file
         for line in file:
-            IPlist.append(line.strip()) # add each line to the IPlist list
+            if "=" in line:  # Ensure proper format
+                key, value = line.strip().split("=", 1)  # Split only at the first "="
+                key = key.strip()
+                value = value.strip()
+                
+                # Store both mappings
+                IPlist[key] = value
+                IPlist[value] = key
+# Function to open the quick access menu
+def openMenu(ip,root):
+    """Opens the quick access menu"""
+    newRoot = tk.Toplevel()
+    newRoot.title("Quick Access Menu")
+    newRoot.geometry("400x100")
+    newRoot.config(bg=backgroundColor)
+    newRoot.resizable(False, False)
+
+    def closeAndConnect():
+        connect(ip)   # Perform connection
+        newRoot.destroy()  # Close the menu
+
+    def closeAndDelete():
+        deletefromlist(ip)  # Perform deletion
+        root.destroy() # close the app
+
+    def closeAndRename():
+        renameIP(ip)  # Perform renaming
+        root.destroy() # close the app
+
+    # Button for connection
+    connectButton = tk.Button(newRoot, text="Connect", command=closeAndConnect, bg=backgroundColor, fg=foregroundColor, font=("Arial", 15))
+    connectButton.pack(side="left", expand=True, fill="x", padx=5)
+
+    # Button to delete
+    deleteButton = tk.Button(newRoot, text="Delete", command=closeAndDelete, bg=backgroundColor, fg=foregroundColor, font=("Arial", 15))
+    deleteButton.pack(side="left", expand=True, fill="x", padx=5)
+
+    # Button to rename
+    renameButton = tk.Button(newRoot, text="Rename", command=closeAndRename, bg=backgroundColor, fg=foregroundColor, font=("Arial", 15))
+    renameButton.pack(side="left", expand=True, fill="x", padx=5)
+
+    # button to go back/ close the menu
+    backButton = tk.Button(newRoot, text="Back", command=lambda: newRoot.destroy(), bg=backgroundColor, fg=foregroundColor, font=("Arial", 15))
+    backButton.pack(side="left", expand=True, fill="x", padx=5)
 
 # Function to connect the IP to ADB
 def connect(ip):
-    """Connect the device through ADB and start scrcpy"""
+    """Connects the device through ADB and start scrcpy"""
     ADB_PATH = "scrcpywin/adb.exe"
     SCRCPY_PATH = "scrcpywin/scrcpy.exe"
 
@@ -85,19 +146,19 @@ def connect(ip):
 
 
 # Function to show the tutorial
-def showTutorial():
-    """Show the first-time connection tutorial in 5-6 steps"""
+def showTutorial(root):
+    """Shows the first-time connection tutorial in 5-6 steps"""
     newRoot = tk.Toplevel()  # Use Toplevel instead of Tk() to create a new window
     newRoot.title("First-time Connection Tutorial")
     newRoot.geometry("1280x720") # Set the dimensions of the window
     newRoot.config(bg=backgroundColor) # Set the background color of the window
     newRoot.resizable(False, False) # Disable resizing of the window
     
-    showStep1(newRoot) # show the first step
+    showStep1(newRoot, root) # show the first step
 
 # Function to show the first step of the tutorial
-def showStep1(root):
-    '''Show the first step of the tutorial'''
+def showStep1(root, parent):
+    '''Shows the first step of the tutorial'''
     clearRoot(root) # always clear the root window before showing a new step
     label1 = tk.Label(root, text="Please follow the steps to connect your Android device.", font=("Arial", 20), fg="white", bg="black") # create text
     label1.pack(pady=10)
@@ -110,12 +171,12 @@ def showStep1(root):
                       font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label3.pack(pady=10)
 
-    button = tk.Button(root, text="Next", command=lambda: showStep2(root), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # button to traverse the steps
+    button = tk.Button(root, text="Next", command=lambda: showStep2(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # button to traverse the steps
     button.pack(pady=10)
 
 # Function to show step 2
-def showStep2(root):
-    '''Show the second step of the tutorial'''
+def showStep2(root, parent):
+    '''Shows the second step of the tutorial'''
     clearRoot(root) # clear the root window
     label1 = tk.Label(root, text="Step 2: Open the Settings app and go to 'About phone'.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label1.pack(pady=10)
@@ -123,21 +184,22 @@ def showStep2(root):
     label2 = tk.Label(root, text="Press on software information and tap Build Number 7 times.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label2.pack(pady=10)
 
-    button = tk.Button(root, text="Next", command=lambda: showStep3(root), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # button to traverse the steps
+    button = tk.Button(root, text="Next", command=lambda: showStep3(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # button to traverse the steps
     button.pack(pady=10)
 
 # Function to show step 3
-def showStep3(root):
-    '''Show the third step of the tutorial'''
+def showStep3(root, parent):
+    '''Shows the third step of the tutorial'''
     clearRoot(root) # clear the root window
     label1 = tk.Label(root, text="Step 3: Enable Developer Options and USB Debugging.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label1.pack(pady=10)
 
-    button = tk.Button(root, text="Next", command=lambda: showStep4(root), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # create button to traverse the steps
+    button = tk.Button(root, text="Next", command=lambda: showStep4(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # create button to traverse the steps
     button.pack(pady=10)
 
 # Function to show the fourth step
-def showStep4(root):
+def showStep4(root, parent):
+    """Shows the fourth step of the tutorial"""
     clearRoot(root) # clear the root window
     
     label1 = tk.Label(root, text="Step 4: Go to Settings, About phone, Status information and input the following pattern 192.168...", 
@@ -182,30 +244,30 @@ def showStep4(root):
     addBtn.grid(row=6, column=0, columnspan=3, pady=10)
 
     # Add a "Next" button to move to the next step
-    nextBtn = tk.Button(root, text="Next", command=lambda: showStep5(root), 
+    nextBtn = tk.Button(root, text="Next", command=lambda: showStep5(root, parent), 
                         bg=backgroundColor, fg=foregroundColor, font=("Arial", 20), width=10)
     nextBtn.grid(row=7, column=0, columnspan=3, pady=10) 
 
 # Function to show the final step
-def showStep5(root):
-    """Show the fifth step of the tutorial"""
+def showStep5(root, parent):
+    """Shows the fifth step of the tutorial"""
     clearRoot(root) # clear the window
     # create text
     label1 = tk.Label(root, text="Step 5: Restart the mirroring app and connect to your IP address.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) 
     label1.pack(pady=10)
     # button to shut down the window, the tutorial is finished
-    button = tk.Button(root, text="Finish", command=lambda: destroyRoot(root), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20))
+    button = tk.Button(root, text="Finish", command=lambda: destroyRoot(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20))
     button.pack(pady=10)
 
 # Function to shut down a window
-def destroyRoot(root):
-    """Shut down a window"""
+def destroyRoot(root, parent):
+    """Shuts down the application"""
     root.destroy()
+    parent.destroy()
 
 # Main function
 def main():
-    """Main function to start the program"""
-    loadIPs()
+    loadIPs() # load the IPs from the text file
     root = tk.Tk() # create an instance
     root.title("Android Connection via scrcpy and adb")
     root.geometry("1280x720") # set the dimensions of the window
@@ -243,10 +305,11 @@ def main():
         "width": 30
     }
 
-    # Create buttons with IP addresses as text
-    for ip in IPlist:
-        button = tk.Button(button_frame, text=ip, command=lambda ip=ip: connect(ip), **buttonStyle)
-        button.pack(pady=5, fill="x")
+    for ip, name in IPlist.items():
+        if ip.replace(".", "").isdigit():  # Ensure `ip` is actually an IP address
+            button = tk.Button(button_frame, text=name, command=lambda ip=ip: openMenu(ip,root), **buttonStyle)
+            button.pack(pady=5, fill="x")
+
 
     # Function to update scroll region
     def update_scroll_region(event=None):
@@ -254,10 +317,14 @@ def main():
 
     button_frame.bind("<Configure>", update_scroll_region)
 
-    # Tutorial Button
-    tutorial_button = tk.Button(root, text="First time? Show tutorial", command=showTutorial, bg=backgroundColor, fg=foregroundColor, font=("Arial", 20))
-    tutorial_button.pack(side="bottom", fill="x", pady=10)
-
+    # exit button
+    exit_button = tk.Button(root, text="Exit", command=root.destroy, bg=backgroundColor, fg=foregroundColor, font=("Arial", 20))
+    exit_button.pack(side="left", expand=True, fill="x", padx=5)
+    
+    # Add device tutorial Button
+    tutorial_button = tk.Button(root, text="Add device", command=lambda:showTutorial(root), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) 
+    tutorial_button.pack(side="left", expand=True, fill="x", padx=5)
+    
     root.mainloop()
 
 if __name__ == "__main__":
