@@ -11,15 +11,13 @@
 # Save the IP address for easy access next time and let the user to chose their IP
 
 # Steps (After first time connection):
-# show the saved IP addresses
 # User chooses the IP address
 # adb tcpip 5555
 # adb connect 192.168...:5555
 # run scrcpy
 
-# exit, more, add device
 # TODO: ADD PICTURES TO THE TUTORIAL FOR EASIER UNDERSTANDING
-
+# TODO: ADD A NAMING OPTION IN THE TUTORIAL
 import subprocess
 import tkinter as tk
 import time 
@@ -68,8 +66,84 @@ def deletefromlist(ip):
 
             
 # Function to rename a certain IP
-def renameIP(ip):
+def renameIP(ip, name):
     """Renames an IP"""
+    # first read the file
+    with open('savedIP.txt', 'r') as file:
+        lines = file.readlines()
+    # find the line with the IP
+    with open('savedIP.txt', 'w') as file:
+        for line in lines:
+            if line.startswith(ip + " = "):
+                file.write(f"{ip} = {name}\n")
+            else:
+                file.write(line)
+# function to create a window to get the name to rename the address
+def createWindow(root,callback):
+    """Creates a window to take the input for rename"""
+    newRoot = tk.Toplevel()
+    newRoot.title("Rename")
+    newRoot.geometry("550x400")
+    newRoot.config(bg=backgroundColor)
+    newRoot.resizable(False, False)
+
+    name = tk.StringVar()
+
+    # Add spacing at the top
+    tk.Label(newRoot, text="", bg=backgroundColor).grid(row=0, column=0, columnspan=10, pady=10)
+
+    # Display Label for Input
+    display_label = tk.Label(newRoot, textvariable=name, font=("Arial", 20), fg=foregroundColor, bg=backgroundColor)
+    display_label.grid(row=1, column=0, columnspan=10, pady=20)
+
+    keys = [
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+    ]
+    special_keys = ['Backspace', 'Clear', 'Space']
+
+    # Function to add the number to the IP string
+    def add_to_input(value):
+        name.set(name.get() + value)
+
+    # Function to clear the input
+    def clear_input():
+        name.set("")
+
+    # Function to remove last character
+    def backspace():
+        name.set(name.get()[:-1])
+
+    # Function to submit the input
+    def submit():
+        callback(name.get())
+        root.destroy()
+
+    start_row = 2  # Move everything lower
+
+    for r, row in enumerate(keys):
+        for c, key in enumerate(row):
+            action = lambda k=key: add_to_input(k)
+            tk.Button(newRoot, text=key, width=5, height=2, command=action).grid(row=start_row + r, column=c, padx=5, pady=5)
+
+    row_position = start_row + len(special_keys)
+    # Backspace Button
+    tk.Button(newRoot, text="Backspace", width=10, height=2, command=backspace).grid(
+        row=row_position, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+
+    # Clear Button
+    tk.Button(newRoot, text="Clear", width=10, height=2, command=clear_input).grid(
+        row=row_position, column=3, columnspan=3, padx=5, pady=5, sticky="ew")
+
+    # Space Button
+    tk.Button(newRoot, text="Space", width=10, height=2, command=lambda: add_to_input(" ")).grid(
+        row=row_position, column=6, columnspan=3, padx=5, pady=5, sticky="ew")
+
+    # Submit Button (Centered below everything)
+    tk.Button(newRoot, text="Submit", width=10, height=2, command=submit).grid(
+        row=row_position + 1, column=0, columnspan=9, pady=10, sticky="ew")
+
 
 # Function to load the IPs from a text file
 def loadIPs():
@@ -86,6 +160,7 @@ def loadIPs():
                 # Store both mappings
                 IPlist[key] = value
                 IPlist[value] = key
+
 # Function to open the quick access menu
 def openMenu(ip,root):
     """Opens the quick access menu"""
@@ -104,8 +179,7 @@ def openMenu(ip,root):
         root.destroy() # close the app
 
     def closeAndRename():
-        renameIP(ip)  # Perform renaming
-        root.destroy() # close the app
+        createWindow(root,lambda name: renameIP(ip, name))
 
     # Button for connection
     connectButton = tk.Button(newRoot, text="Connect", command=closeAndConnect, bg=backgroundColor, fg=foregroundColor, font=("Arial", 15))
