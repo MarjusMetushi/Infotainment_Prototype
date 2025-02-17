@@ -16,11 +16,10 @@
 # adb connect 192.168...:5555
 # run scrcpy
 
-# TODO: ADD PICTURES TO THE TUTORIAL FOR EASIER UNDERSTANDING
-# TODO: ADD A NAMING OPTION IN THE TUTORIAL
 import subprocess
 import tkinter as tk
 import time 
+from PIL import Image, ImageTk
 
 IPlist = {}
 config = {}
@@ -233,30 +232,82 @@ def showTutorial(root):
 # Function to show the first step of the tutorial
 def showStep1(root, parent):
     '''Shows the first step of the tutorial'''
-    clearRoot(root) # always clear the root window before showing a new step
-    label1 = tk.Label(root, text="Please follow the steps to connect your Android device.", font=("Arial", 20), fg="white", bg="black") # create text
+    clearRoot(root)  # always clear the root window before showing a new step
+    
+    label1 = tk.Label(root, text="Please follow the steps to connect your Android device.", font=("Arial", 20), fg="white", bg="black")
     label1.pack(pady=10)
 
     label2 = tk.Label(root, text="Step 1: Make sure your Android device is on the same Wi-Fi as your infotainment system.", 
-                      font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
+                      font=("Arial", 20), fg=foregroundColor, bg=backgroundColor)
     label2.pack(pady=10)
 
-    label3 = tk.Label(root, text="And plug your android device to the infotainment system via USB cable", 
-                      font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
+    label3 = tk.Label(root, text="And plug your Android device into the infotainment system via USB cable", 
+                      font=("Arial", 20), fg=foregroundColor, bg=backgroundColor)
     label3.pack(pady=10)
 
-    button = tk.Button(root, text="Next", command=lambda: showStep2(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # button to traverse the steps
+    image1 = tk.PhotoImage(file="tutorialPictures/usb.png")
+    label4 = tk.Label(root, image=image1, bg=backgroundColor)
+    label4.image = image1
+    label4.pack(pady=10)
+
+    frame = tk.Frame(root, bg=backgroundColor)
+    frame.pack(pady=10)  # Packs the frame vertically
+
+    image2 = tk.PhotoImage(file="tutorialPictures/connected.png")# the icon used is the following <a href="https://www.flaticon.com/free-icons/multiple-devices" title="multiple-devices icons">Multiple-devices icons created by xnimrodx - Flaticon</a>
+    label5 = tk.Label(frame, image=image2, bg=backgroundColor)
+    label5.image = image2
+    label5.pack(side="left", padx=20)  # Packs left inside the frame
+
+    image3 = tk.PhotoImage(file="tutorialPictures/wifi.png")
+    label6 = tk.Label(frame, image=image3, bg=backgroundColor)
+    label6.image = image3
+    label6.pack(side="left", padx=20)  # Packs left inside the frame
+
+    # Next Button
+    button = tk.Button(root, text="Next", command=lambda: showStep2(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20))
     button.pack(pady=10)
+
 
 # Function to show step 2
 def showStep2(root, parent):
     '''Shows the second step of the tutorial'''
     clearRoot(root) # clear the root window
+    # instructions
     label1 = tk.Label(root, text="Step 2: Open the Settings app and go to 'About phone'.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label1.pack(pady=10)
-
+    #instructions
     label2 = tk.Label(root, text="Press on software information and tap Build Number 7 times.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label2.pack(pady=10)
+
+    # frame to hold the images
+    frame = tk.Frame(root, bg=backgroundColor)
+    frame.pack(pady=10)  # Packs the frame vertically
+
+    # settings icon
+    image1 = tk.PhotoImage(file="tutorialPictures/settings.png")
+    label3 = tk.Label(frame, image=image1, bg=backgroundColor)
+    label3.image = image1
+    label3.pack(side="left",padx=10)
+
+    # software information icon
+    image2 = Image.open("tutorialPictures/softwareinfo.png")
+    image2 = image2.resize((250, 450)) # resize for improved visibility
+    image2 = ImageTk.PhotoImage(image2)
+
+    # label to display the image
+    label4 = tk.Label(frame, image=image2, bg=backgroundColor)
+    label4.image = image2
+    label4.pack(side="left",padx=10)
+
+    # instructions image
+    image3 = Image.open("tutorialPictures/buildnum7x.png")
+    image3 = image3.resize((250, 450)) # resize for improved visibility
+    image3 = ImageTk.PhotoImage(image3)
+    
+    # label to display the image
+    label5 = tk.Label(frame, image=image3, bg=backgroundColor)
+    label5.image = image3
+    label5.pack(side="left",padx=10)
 
     button = tk.Button(root, text="Next", command=lambda: showStep3(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # button to traverse the steps
     button.pack(pady=10)
@@ -267,6 +318,14 @@ def showStep3(root, parent):
     clearRoot(root) # clear the root window
     label1 = tk.Label(root, text="Step 3: Enable Developer Options and USB Debugging.", font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) # create text
     label1.pack(pady=10)
+
+    image = Image.open("tutorialPictures/usbDebugging1.png")
+    image = image.resize((250, 450)) # resize for improved visibility
+    image = ImageTk.PhotoImage(image)
+
+    label2 = tk.Label(root, image=image, bg=backgroundColor)
+    label2.image = image
+    label2.pack(pady=10)
 
     button = tk.Button(root, text="Next", command=lambda: showStep4(root, parent), bg=backgroundColor, fg=foregroundColor, font=("Arial", 20)) # create button to traverse the steps
     button.pack(pady=10)
@@ -281,6 +340,25 @@ def showStep4(root, parent):
     label1.grid(row=0, column=0, columnspan=3, pady=10)
 
     currentInput = tk.StringVar() # variable to hold the IP
+
+    frame = tk.Frame(root, bg=backgroundColor)
+    frame.grid(row=1, column=20, rowspan=6, padx=100, pady=10, sticky="e")  # Packs the frame vertically
+
+    image1 = Image.open("tutorialPictures/statusInfo.png")
+    image1 = image1.resize((250, 450)) # resize for improved visibility
+    image1 = ImageTk.PhotoImage(image1)
+
+    label2 = tk.Label(frame, image=image1, bg=backgroundColor)
+    label2.image = image1
+    label2.pack(side="left", padx=10)
+
+    image2 = Image.open("tutorialPictures/ipaddress1.png")
+    image2 = image2.resize((350, 550)) # resize for improved visibility
+    image2 = ImageTk.PhotoImage(image2)
+
+    label3 = tk.Label(frame, image=image2, bg=backgroundColor)
+    label3.image = image2
+    label3.pack(side="left", padx=10)
 
     # create a label to display the IP as the user is writing it down
     display_label = tk.Label(root, textvariable=currentInput, font=("Arial", 20), fg=foregroundColor, bg=backgroundColor) 
@@ -312,15 +390,16 @@ def showStep4(root, parent):
                                 bg=backgroundColor, fg=foregroundColor, font=("Arial", 20), width=5, height=2)
     backspaceButton.grid(row=5, column=2, padx=5, pady=5)
     
+    # function to add ip to the file and move to the next step
+    def doublefunc(input,root,parent): 
+        addIPtofile("\n"+input)
+        showStep5(root, parent)
+
     # Add an "Add" button to add the IP to the file
-    addBtn = tk.Button(root, text="Add", command=lambda: addIPtofile(currentInput.get()), 
+    addBtn = tk.Button(root, text="Add", command=lambda: doublefunc(currentInput.get(),root,parent), 
                        bg=backgroundColor, fg=foregroundColor, font=("Arial", 20), width=10)
     addBtn.grid(row=6, column=0, columnspan=3, pady=10)
 
-    # Add a "Next" button to move to the next step
-    nextBtn = tk.Button(root, text="Next", command=lambda: showStep5(root, parent), 
-                        bg=backgroundColor, fg=foregroundColor, font=("Arial", 20), width=10)
-    nextBtn.grid(row=7, column=0, columnspan=3, pady=10) 
 
 # Function to show the final step
 def showStep5(root, parent):
