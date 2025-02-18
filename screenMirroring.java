@@ -56,7 +56,7 @@ public class screenMirroring {
         dialog = new JDialog();
 
         dialog.setTitle("Screen Mirroring");
-        dialog.setSize(500, 500);
+        dialog.setSize(500, 200);
         dialog.setBackground(backgroundColor);
         dialog.setForeground(foregroundColor);
 
@@ -82,10 +82,15 @@ public class screenMirroring {
 
         iphone.setFocusable(false);
         android.setFocusable(false);
+
         iphone.setBackground(backgroundColor);
         iphone.setForeground(foregroundColor);
+        
         android.setBackground(backgroundColor);
         android.setForeground(foregroundColor);
+
+        iphone.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 26));
+        android.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 26));
 
         iphone.addActionListener(e -> {
             try {
@@ -99,7 +104,7 @@ public class screenMirroring {
 
         android.addActionListener(e -> {
             try {
-                //Use raspberry pi miraclecast to mirror the android screen and make an installer and a set up code that will run on the raspberry pi
+                
                 connectandroid();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
@@ -107,8 +112,8 @@ public class screenMirroring {
             }
         });
 
-        buttonPanel.add(iphone);
-        buttonPanel.add(android);
+        buttonPanel.add(iphone, BorderLayout.NORTH);
+        buttonPanel.add(android, BorderLayout.SOUTH);
 
         dialog.add(mainPanel, BorderLayout.NORTH);
         dialog.add(buttonPanel, BorderLayout.CENTER);
@@ -116,5 +121,11 @@ public class screenMirroring {
     }
 
     public static void iphoneScreenMirroring() throws IOException {}
-    public static void connectandroid() throws IOException {}
+    // Starting the python script for android screen mirroring
+    public static void connectandroid() throws IOException {
+        ProcessBuilder pb = new ProcessBuilder("python","androidconnection.py");
+        Process process = pb.start();
+        dialog.dispose();
+
+    }
 }
