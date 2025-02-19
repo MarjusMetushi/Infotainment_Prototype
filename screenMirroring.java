@@ -119,8 +119,12 @@ public class screenMirroring {
         dialog.add(buttonPanel, BorderLayout.CENTER);
         dialog.setVisible(true);
     }
-
-    public static void iphoneScreenMirroring() throws IOException {}
+    // Starting the python script for iphone screen mirroring
+    public static void iphoneScreenMirroring() throws IOException {
+        ProcessBuilder pb = new ProcessBuilder("python","iphoneconnection.py");
+        Process process = pb.start();
+        dialog.dispose();
+    }
     // Starting the python script for android screen mirroring
     public static void connectandroid() throws IOException {
         ProcessBuilder pb = new ProcessBuilder("python","androidconnection.py");
