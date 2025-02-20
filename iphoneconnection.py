@@ -1,3 +1,4 @@
+# create a interface with the following instructions
 # get a hdmi capture card
 # get a hdmi
 # connect to the hdmi

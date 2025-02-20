@@ -109,7 +109,7 @@ public class Media {
         usbButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new usb();
+                new usb().usb();
             }
         });
 

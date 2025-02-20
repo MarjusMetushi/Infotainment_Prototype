@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "usb",
+      "request": "launch",
+      "mainClass": "usb",
+      "projectName": "project_39933c62"
+    },
+    {
+      "type": "java",
       "name": "maps",
       "request": "launch",
       "mainClass": "maps",
