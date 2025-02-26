@@ -84,7 +84,7 @@ public class dashboard {
     /*
      * TODO:
      * Simulate everything with the CAN bus and Run tests
-     * Create a method to fetch information from the CAN Bus and update the values each second
+     * Create a method/Class to fetch information from the CAN Bus and update the values each second
      */
     dashboard() throws FileNotFoundException, IOException {
         // Start the thread to fetch information from the CAN bus
@@ -95,7 +95,7 @@ public class dashboard {
                 try {
                     fetchInformation();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
+                    // Debugging
                     e.printStackTrace();
                 }
             }

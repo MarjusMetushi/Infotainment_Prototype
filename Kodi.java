@@ -158,7 +158,7 @@ public class Kodi {
             try {
                 downloadKodi();
             } catch (IOException e1) {
-                // TODO Auto-generated catch block
+                // Debugging
                 e1.printStackTrace();
             }
             dialog.dispose();

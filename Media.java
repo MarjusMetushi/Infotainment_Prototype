@@ -100,13 +100,14 @@ public class Media {
                 try {
                     new Kodi().openKodi();
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
+                    // Debugging
                     e1.printStackTrace();
                 }
             }
         });
 
         usbButton.addActionListener(new ActionListener() {
+            @SuppressWarnings("static-access")
             @Override
             public void actionPerformed(ActionEvent e) {
                 new usb().usb();

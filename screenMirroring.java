@@ -1,10 +1,3 @@
-/*
- * TODO:
- * 2. Make separate classes for these devices 
- * 3. Android -> Chromecast
- * 4. Iphone -> Rpi Play 
- */
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -94,10 +87,10 @@ public class screenMirroring {
 
         iphone.addActionListener(e -> {
             try {
-                // Install and open 5kplayer
+                // HDMI Capture Card
                 iphoneScreenMirroring();
             } catch (IOException e1) {
-                // TODO Auto-generated catch block
+                // Debugging
                 e1.printStackTrace();
             }
         });
@@ -107,7 +100,7 @@ public class screenMirroring {
                 
                 connectandroid();
             } catch (IOException e1) {
-                // TODO Auto-generated catch block
+                // Debugging
                 e1.printStackTrace();
             }
         });
@@ -122,12 +115,14 @@ public class screenMirroring {
     // Starting the python script for iphone screen mirroring
     public static void iphoneScreenMirroring() throws IOException {
         ProcessBuilder pb = new ProcessBuilder("python","iphoneconnection.py");
+        @SuppressWarnings("unused")
         Process process = pb.start();
         dialog.dispose();
     }
     // Starting the python script for android screen mirroring
     public static void connectandroid() throws IOException {
         ProcessBuilder pb = new ProcessBuilder("python","androidconnection.py");
+        @SuppressWarnings("unused")
         Process process = pb.start();
         dialog.dispose();
 

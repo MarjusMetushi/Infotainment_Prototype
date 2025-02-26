@@ -312,7 +312,7 @@ public class UserInterface extends JFrame {
                 try {
                     new dashboard();
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
+                    // Debugging
                     e1.printStackTrace();
                 }
             }

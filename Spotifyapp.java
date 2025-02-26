@@ -185,7 +185,7 @@ public class Spotifyapp {
             try {
                 downloadSpotify();
             } catch (IOException e1) {
-                // TODO Auto-generated catch block
+                // Debugging
                 e1.printStackTrace();
             }
             dialog.dispose();
