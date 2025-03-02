@@ -5,10 +5,9 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Properties;
-
 import javax.swing.*;
-//TODO: fix the buttons looks
-//TODO: try to make a jfilechooser 
+
+//TODO: REDO THE WHOLE UI
 
 public class usb {
     // Declare variables
@@ -19,24 +18,25 @@ public class usb {
     static Properties config = new Properties();
     static JPanel panel;
     static JPanel lowerPanel;
-    static GridBagConstraints gbc = new GridBagConstraints();
     static int elements = 0;
-    
+
     public static void usb() {
         // Load config to load system's variables
-        loadConfig(); 
+        loadConfig();
         backgroundColor = getColorFromString(config.getProperty("backgroundColor", "white"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor", "black"));
-        
+
         // UI and costumization
-        dialog = new JDialog(); 
+        dialog = new JDialog();
         dialog.setTitle("USB Explorer");
         dialog.setSize(1280, 720);
         dialog.setLayout(new BorderLayout());
 
+
         // Create the top/biggest panel
         panel = new JPanel();
         panel.setBackground(backgroundColor);
+        panel.setForeground(backgroundColor);
 
         // Create the lower panel with buttons
         lowerPanel = new JPanel();
@@ -44,25 +44,22 @@ public class usb {
         lowerPanel.setBackground(backgroundColor);
 
         JButton goBack = new JButton("Exit");
+        customizeButton(goBack);
         JButton again = new JButton("Open");
-
+        customizeButton(again);
         // Add action listeners to buttons
         goBack.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 dialog.dispose(); // Quits the application
             }
-
         });
 
         again.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 showFiles(getPath()); // Loads the files
             }
-
         });
 
         // Add everything together
@@ -84,6 +81,7 @@ public class usb {
             // DEBUGGING
         }
     }
+
     // Helper method to fetch a color based on the string
     private static Color getColorFromString(String color) {
         return switch (color.toLowerCase()) {
@@ -95,6 +93,7 @@ public class usb {
             default -> Color.WHITE;
         };
     }
+
     // Helper method to get the path of the directory
     private static File getPath() {
         JFileChooser fileChooser = new JFileChooser();
@@ -115,8 +114,8 @@ public class usb {
         // Recursively collect all files and directories
         ArrayList<File> allFiles = new ArrayList<>();
         collectFiles(directory, allFiles); // Call helper method to group all the files together
-        
-        panel.setLayout(new GridLayout(0,3,5,5));
+
+        panel.setLayout(new GridLayout(0, 3, 5, 5));
         // Add all files and directories to the panel
         for (int i = 0; i < allFiles.size(); i++) {
             File f = allFiles.get(i);
@@ -124,7 +123,6 @@ public class usb {
             button.setPreferredSize(new Dimension(100, 70));
             button.setFont(new Font("Arial", Font.BOLD, 20)); // Set font
             setFunctionality(button, f); // Set button functionality based on file
-            
             panel.add(button);
         }
         // Update layout
@@ -142,7 +140,6 @@ public class usb {
         for (File f : files) {
             // Add current file or directory to the list
             allFiles.add(f);
-
             // If directory -> recursion
             if (f.isDirectory()) {
                 collectFiles(f, allFiles); // Recursively search subdirectories
@@ -156,11 +153,18 @@ public class usb {
             // UI adjustments
             JDialog tempDialog = new JDialog();
             tempDialog.setTitle(button.getText());
-            tempDialog.setSize(300, 200);
+            tempDialog.setSize(250, 150);
             tempDialog.setLayout(new FlowLayout());
+            tempDialog.setBackground(backgroundColor);
+            tempDialog.setForeground(foregroundColor);
+
+            JPanel tempPanel = new JPanel(new FlowLayout());
+            tempPanel.setBackground(backgroundColor);
+            tempPanel.setForeground(foregroundColor);
             // Text files can be opened to be read
             if (file.getName().endsWith(".txt") || file.getName().endsWith(".md") || file.getName().endsWith(".pdf")) {
                 JButton openText = new JButton("Open Text");
+                customizeButton(openText);
                 openText.addActionListener(e -> {
                     try {
                         openTextFile(file);
@@ -169,43 +173,60 @@ public class usb {
                         e1.printStackTrace();
                     }
                 });
-                tempDialog.add(openText);
-            // Image files can be opened to be viewed
+                tempPanel.add(openText);
+                // Image files can be opened to be viewed
             } else if (file.getName().endsWith(".png") || file.getName().endsWith(".jpg")
                     || file.getName().endsWith(".jpeg")) {
                 JButton openImage = new JButton("Open Image");
+                customizeButton(openImage);
                 openImage.addActionListener(e -> openImageFile(file));
-                tempDialog.add(openImage);
-                // Audio files can be stored in memory or playlist and played later OR played as long as the audio player is opened
-            } else if (file.getName().endsWith(".mp3") || file.getName().endsWith(".wav")) {
-                // Add audio functionality if needed
+                tempPanel.add(openImage);
+                // Audio files can be stored in memory or playlist and played later OR played as
+                // long as the audio player is opened
+            } else if (file.getName().endsWith(".mp3")) {
+                JButton playButton = new JButton("Play audio");
+                customizeButton(playButton);
+                playButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            new playSound(file.getAbsolutePath()).play();
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                });
+                tempPanel.add(playButton);
             } else {
                 JOptionPane.showMessageDialog(null, "System does not support this format"); // Ignore other formats
             }
 
             JButton deleteButton = new JButton("Delete");
+            customizeButton(deleteButton);
             deleteButton.addActionListener(new ActionListener() {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     // Clear the button and everything away after deleting
-                    deleteFile(file);
-                    panel.remove(button);
-                    tempDialog.dispose();
-                    dialog.revalidate();
-                    dialog.repaint();
+                    if (deleteFile(file)) {
+                        panel.remove(button);
+                        tempDialog.dispose();
+                        dialog.revalidate();
+                        dialog.repaint();
+                    }
                 }
-                
             });
-            tempDialog.add(deleteButton);
+            tempPanel.add(deleteButton);
             // Button to clear the temporary dialog
             JButton goBack = new JButton("Go Back");
+            customizeButton(goBack);
             goBack.addActionListener(e -> tempDialog.dispose());
-            tempDialog.add(goBack);
-
+            tempPanel.add(goBack);
+            tempDialog.add(tempPanel);
             tempDialog.setVisible(true);
         });
     }
+
     // Helper method to open pdf files differently from txt and md files
     private static void openTextFile(File file) throws IOException {
         if (file.getName().endsWith(".pdf")) {
@@ -216,6 +237,7 @@ public class usb {
         JDialog textDialog = new JDialog();
         textDialog.setTitle(file.getName());
         textDialog.setSize(400, 300);
+        
 
         JTextArea textArea = new JTextArea();
         try {
@@ -230,6 +252,7 @@ public class usb {
 
         textDialog.setVisible(true);
     }
+
     // Helper method to open image files
     private static void openImageFile(File file) {
         if (!file.exists()) {
@@ -251,8 +274,9 @@ public class usb {
 
         imageDialog.setVisible(true);
     }
+
     // Helper method to delete files
-    private static void deleteFile(File file) {
+    private static boolean deleteFile(File file) {
         if (file.exists()) {
             // Prompt user for confirmation
             int response = JOptionPane.showConfirmDialog(
@@ -266,10 +290,22 @@ public class usb {
                 try {
                     Files.delete(file.toPath()); // Delete the file
                     JOptionPane.showMessageDialog(null, "File deleted successfully!");
+                    return true;
                 } catch (IOException e1) {
                     JOptionPane.showMessageDialog(null, "Error deleting file: " + e1.getMessage());
                 }
+            } else {
+                return false;
             }
         }
+        return false;
+    }
+
+    // Helper method to costumize buttons
+    private static void customizeButton(JButton button) {
+        button.setPreferredSize(new Dimension(100, 70));
+        button.setFont(new Font("Arial", Font.BOLD, 10)); // Set font
+        button.setBackground(backgroundColor);
+        button.setForeground(foregroundColor);
     }
 }

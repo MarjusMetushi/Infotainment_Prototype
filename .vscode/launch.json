@@ -3,6 +3,20 @@
   "configurations": [
     {
       "type": "java",
+      "name": "USBExplorer",
+      "request": "launch",
+      "mainClass": "USBExplorer",
+      "projectName": "project_39933c62"
+    },
+    {
+      "type": "java",
+      "name": "GalleryWrapper",
+      "request": "launch",
+      "mainClass": "GalleryWrapper",
+      "projectName": "project_39933c62"
+    },
+    {
+      "type": "java",
       "name": "usb",
       "request": "launch",
       "mainClass": "usb",
