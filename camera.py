@@ -330,7 +330,6 @@ def openCameraSettings(root, buttonsPanel, timerIndicator):
         settingsPanel.destroy()  # Remove the panel
         settingsPanel = None
         openSettings = False
-        print("Settings panel hidden.")
     else:
         settingsPanel = tk.Frame(root, bg=backgroundColor, height=50, width=720, highlightthickness=0)
         settingsPanel.pack(side=tk.TOP, pady=5, fill=tk.BOTH, before=buttonsPanel)  # Place above buttonsPanel
@@ -359,7 +358,6 @@ def openCameraSettings(root, buttonsPanel, timerIndicator):
             )
             button.grid(row=0, column=col, padx=5, pady=5)
         openSettings = True
-        print("Settings panel shown.")
 
 # helper function to change the timer before taking the picture or recording
 def toggleTimer(timerIndicator):

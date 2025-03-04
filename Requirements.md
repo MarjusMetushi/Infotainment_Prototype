@@ -12,10 +12,11 @@ https://www.oracle.com/java/technologies/downloads/
 ## Install python
 https://www.python.org/downloads/
 ### Dependencies/Libraries used:
-* Default python libraries
 * OpenCV - pip install opencv-python
 * TKinter - pip install tkinter
 * OBD-II reader - pip install obd & pip install python-can
+* Pygame - pip install pygame
+* Pillow - pip install Pillow
 ## Install c++
 https://www.bloodshed.net/
 ### Dependencies/Libraries used:

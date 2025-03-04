@@ -110,7 +110,7 @@ public class Media {
             @SuppressWarnings("static-access")
             @Override
             public void actionPerformed(ActionEvent e) {
-                new usb().usb();
+                new usb().startusb();
             }
         });
 

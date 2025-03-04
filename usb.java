@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import javax.swing.*;
 
-//TODO: REDO THE WHOLE UI
+//TODO: Add a "add to playlist" functionality and create an arraylist with playlists names and the names of playlists in the config file  
 
 public class usb {
     // Declare variables
@@ -20,7 +20,7 @@ public class usb {
     static JPanel lowerPanel;
     static int elements = 0;
 
-    public static void usb() {
+    public static void startusb() {
         // Load config to load system's variables
         loadConfig();
         backgroundColor = getColorFromString(config.getProperty("backgroundColor", "white"));
@@ -33,7 +33,7 @@ public class usb {
         dialog.setLayout(new BorderLayout());
 
 
-        // Create the top/biggest panel
+        // Create the files panel
         panel = new JPanel();
         panel.setBackground(backgroundColor);
         panel.setForeground(backgroundColor);
@@ -69,8 +69,7 @@ public class usb {
         dialog.add(new JScrollPane(panel), BorderLayout.CENTER);
         dialog.add(lowerPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
-        // Start by prompting the user to select a directorys
-        showFiles(getPath());
+        
     }
 
     // Helper method to load the config file
@@ -120,8 +119,7 @@ public class usb {
         for (int i = 0; i < allFiles.size(); i++) {
             File f = allFiles.get(i);
             JButton button = new JButton(f.getName()); // Create a button for each file
-            button.setPreferredSize(new Dimension(100, 70));
-            button.setFont(new Font("Arial", Font.BOLD, 20)); // Set font
+            customizeButton(button);
             setFunctionality(button, f); // Set button functionality based on file
             panel.add(button);
         }
@@ -149,19 +147,26 @@ public class usb {
 
     // Helper method to set button functionality based on file type
     private static void setFunctionality(JButton button, File file) {
-        button.addActionListener(evt1 -> { // Add action listener to button
-            // UI adjustments
+        button.addActionListener(evt1 -> { 
+            // Create dialog with modern styling
             JDialog tempDialog = new JDialog();
             tempDialog.setTitle(button.getText());
-            tempDialog.setSize(250, 150);
-            tempDialog.setLayout(new FlowLayout());
-            tempDialog.setBackground(backgroundColor);
-            tempDialog.setForeground(foregroundColor);
-
-            JPanel tempPanel = new JPanel(new FlowLayout());
+            tempDialog.setSize(400, 300);
+            tempDialog.setLayout(new BorderLayout());
+            tempDialog.getContentPane().setBackground(backgroundColor);
+    
+            // Panel to hold buttons with vertical alignment
+            JPanel tempPanel = new JPanel();
+            tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.Y_AXIS));
             tempPanel.setBackground(backgroundColor);
-            tempPanel.setForeground(foregroundColor);
-            // Text files can be opened to be read
+            tempPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Add padding
+    
+            // Wrapper panel for centering buttons
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new GridLayout(0, 1, 10, 10)); // Vertical layout with spacing
+            buttonPanel.setBackground(backgroundColor);
+    
+            // Text files
             if (file.getName().endsWith(".txt") || file.getName().endsWith(".md") || file.getName().endsWith(".pdf")) {
                 JButton openText = new JButton("Open Text");
                 customizeButton(openText);
@@ -169,63 +174,71 @@ public class usb {
                     try {
                         openTextFile(file);
                     } catch (IOException e1) {
-                        // Debugging
                         e1.printStackTrace();
                     }
                 });
-                tempPanel.add(openText);
-                // Image files can be opened to be viewed
-            } else if (file.getName().endsWith(".png") || file.getName().endsWith(".jpg")
-                    || file.getName().endsWith(".jpeg")) {
+                buttonPanel.add(openText);
+            } 
+            // Image files
+            else if (file.getName().endsWith(".png") || file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg")) {
                 JButton openImage = new JButton("Open Image");
                 customizeButton(openImage);
                 openImage.addActionListener(e -> openImageFile(file));
-                tempPanel.add(openImage);
-                // Audio files can be stored in memory or playlist and played later OR played as
-                // long as the audio player is opened
-            } else if (file.getName().endsWith(".mp3")) {
+                buttonPanel.add(openImage);
+            } 
+            // Audio files
+            else if (file.getName().endsWith(".mp3")) {
                 JButton playButton = new JButton("Play audio");
                 customizeButton(playButton);
-                playButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            new playSound(file.getAbsolutePath()).play();
-                        } catch (Exception e1) {
-                            e1.printStackTrace();
-                        }
+                playButton.addActionListener(e -> {
+                    try {
+                        System.out.println("Playing " + file.getAbsolutePath());
+                        ProcessBuilder processBuilder = new ProcessBuilder("python", "audio.py", file.getAbsolutePath());
+                        processBuilder.inheritIO();
+                        processBuilder.start();
+                        tempDialog.dispose();
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
                     }
                 });
-                tempPanel.add(playButton);
-            } else {
-                JOptionPane.showMessageDialog(null, "System does not support this format"); // Ignore other formats
+                buttonPanel.add(playButton);
+            } 
+            // Unsupported formats
+            else {
+                JOptionPane.showMessageDialog(null, "System does not support this format", 
+                                              "Unsupported Format", JOptionPane.WARNING_MESSAGE);
+                return;
             }
-
+    
+            // Delete button
             JButton deleteButton = new JButton("Delete");
             customizeButton(deleteButton);
-            deleteButton.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // Clear the button and everything away after deleting
-                    if (deleteFile(file)) {
-                        panel.remove(button);
-                        tempDialog.dispose();
-                        dialog.revalidate();
-                        dialog.repaint();
-                    }
+            deleteButton.addActionListener(e -> {
+                if (deleteFile(file)) {
+                    panel.remove(button);
+                    tempDialog.dispose();
+                    dialog.revalidate();
+                    dialog.repaint();
                 }
             });
-            tempPanel.add(deleteButton);
-            // Button to clear the temporary dialog
+            buttonPanel.add(deleteButton);
+    
+            // Go Back button
             JButton goBack = new JButton("Go Back");
             customizeButton(goBack);
             goBack.addActionListener(e -> tempDialog.dispose());
-            tempPanel.add(goBack);
-            tempDialog.add(tempPanel);
+            buttonPanel.add(goBack);
+    
+            // Add button panel to the dialog
+            tempPanel.add(buttonPanel);
+            tempDialog.add(tempPanel, BorderLayout.CENTER);
+    
+            // Center the dialog on screen
+            tempDialog.setLocationRelativeTo(null);
             tempDialog.setVisible(true);
         });
     }
+    
 
     // Helper method to open pdf files differently from txt and md files
     private static void openTextFile(File file) throws IOException {
@@ -304,8 +317,22 @@ public class usb {
     // Helper method to costumize buttons
     private static void customizeButton(JButton button) {
         button.setPreferredSize(new Dimension(100, 70));
-        button.setFont(new Font("Arial", Font.BOLD, 10)); // Set font
+        button.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
         button.setBackground(backgroundColor);
         button.setForeground(foregroundColor);
+
+        JLabel label = new JLabel(button.getText()){
+            @Override
+            public void setText(String text) {
+                super.setText("<html><body><p style='width: 100px;'>" + text + "</p></body></html>");
+            }
+        };
+        label.setForeground(foregroundColor);
+        label.setBackground(backgroundColor);
+        label.setFont(new Font("Arial", Font.BOLD, 16));
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setVerticalAlignment(SwingConstants.CENTER);
+        button.setText("");
+        button.add(label);
     }
 }
