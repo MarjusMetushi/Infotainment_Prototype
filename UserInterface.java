@@ -34,7 +34,7 @@ public class UserInterface extends JFrame {
     JButton volumeDownButton = new JButton("-");
     JButton muteButton = new JButton("MUTE");
     //Constructor to set up the UI
-    @SuppressWarnings("OverridableMethodCallInConstructor")
+    @SuppressWarnings({ "OverridableMethodCallInConstructor", "static-access" })
     public UserInterface(){
         if(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")){
             currentVolume = getSystemVolumeWin();
@@ -44,6 +44,15 @@ public class UserInterface extends JFrame {
         volumeBarPanel.setCurrentVolume(currentVolume);
         //Loading settings 
         loadConfig();
+        //Loading the current playlist and the functionality to play music
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                playlist playlist = new playlist();
+                playlist.loadPlaylist();
+            }
+        });
+        thread.start();
         //Getting the background and foreground colors from the properties file and getting the color from a string
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor"));

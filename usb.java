@@ -7,6 +7,15 @@ import java.util.ArrayList;
 import java.util.Properties;
 import javax.swing.*;
 
+/*
+ * How to identify the playlists?
+ * Idea: 
+ * - On the playlist folder, count only the folders inside
+ * - When the user is prompted, he is given only the option to select the playlists listed inside that folder
+ * - After uses presses where to add, Make a function to migrate a file there 
+ * - For that I need to use Files.move(Path source, Path target)
+ */
+
 //TODO: Add a "add to playlist" functionality and create an arraylist with playlists names and the names of playlists in the config file  
 
 public class usb {
@@ -201,6 +210,11 @@ public class usb {
                         e1.printStackTrace();
                     }
                 });
+                JButton addToPlaylist = new JButton("Add to playlist");
+                customizeButton(addToPlaylist);
+                addToPlaylist.addActionListener(e -> {
+                    promptPlaylists();
+                });
                 buttonPanel.add(playButton);
             } 
             // Unsupported formats
@@ -239,6 +253,12 @@ public class usb {
         });
     }
     
+    // Helper method to prompt the user to select a playlist
+    private static void promptPlaylists() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        
+    }
 
     // Helper method to open pdf files differently from txt and md files
     private static void openTextFile(File file) throws IOException {
