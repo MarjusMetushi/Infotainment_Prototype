@@ -45,15 +45,18 @@ public class UserInterface extends JFrame {
         volumeBarPanel.setCurrentVolume(currentVolume);
         //Loading settings 
         loadConfig();
-        //Loading the current playlist and the functionality to play music
-        Thread thread = new Thread(new Runnable() {
+        //Loading the playlist
+        Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                playlist playlist = new playlist();
-                playlist.loadPlaylist();
+                try {
+                    new playlist();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
-        thread.start();
+        thread1.start();
         //Getting the background and foreground colors from the properties file and getting the color from a string
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor"));

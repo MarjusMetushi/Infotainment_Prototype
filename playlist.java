@@ -1,8 +1,22 @@
 import java.io.*;
 import java.util.*;
-import java.io.*;
 import java.net.*;
 import javax.swing.JFileChooser;
+
+/*
+ * Lets remodel the whole playlist class
+ * The functions will include only pausing, resuming, skipping, looping  and restarting the mixer in case there is a new playlist
+ * The playlist will be loaded with the last song played in the playlist
+ * And it will start as soon as the user presses play
+ * Python will do most of the work but these commands will interact with the server for the mixer
+ * In case of pause -> python will pause
+ * In case of resume -> python will resume or start the last song
+ * In case of next -> python will play the next song
+ * In case of previous -> python will play the previous song
+ * In case of a loop -> python will play the last song again
+ * The order will always be shuffled and start from the beginning of the shuffled queue if the system is closed and reopened
+ */
+
 
 public class playlist {
     // Declare the playlists and configuration
@@ -14,8 +28,11 @@ public class playlist {
     public static Properties config = new Properties();
 
     // Constructor to initialize the playlist
-    public playlist() {
+    public playlist() throws IOException {
+        System.out.println("Starting player...");
+        Process p = new ProcessBuilder("python","player.py").start();
         getPlaylistCurrentPath();
+        loadPlaylist();
     }
 
     // Method to read the current path of the playlist from the config file
@@ -41,10 +58,10 @@ public class playlist {
         File file = new File(currentPathToPlaylist);
 
         if (file.exists() && file.isDirectory()) {
-            String[] folder = file.list();
+            File[] folder = file.listFiles();
             if (folder != null) {
-                for (String song : folder) {
-                    toPlay.push(song); // Add songs to the 'toPlay' stack
+                for (File song : folder) {
+                    toPlay.push(song.getAbsolutePath()); // Add songs to the 'toPlay' stack
                 }
             }
         } else {
@@ -64,18 +81,17 @@ public class playlist {
             if (loop) {
                 playSong(played.peek()); // Repeat the song (loop)
             }
-            if (!toPlay.isEmpty()) {
-                playSong(toPlay.peek()); // Play the next song if there is one
-            }
         }
     }
-
-    // Example method to call a Python script to play the song
+    //Helper method to call a Python script to play the song
     public static void callPythonScript(String song) {
-        sendCommandToPython("play "+song);
-        if (!toPlay.isEmpty())
-            playSong(toPlay.peek()); // Play the next song if there is one
+        if ("pause".equals(song) || "resume".equals(song)) {
+            sendCommandToPython(song);  // Directly send "pause" or "resume"
+        } else {
+            sendCommandToPython("play " + song);  // Send play command with the song
+        }
     }
+    
 
     public static void next() {
         if (!toPlay.isEmpty()) {
@@ -146,7 +162,7 @@ public class playlist {
     }
 
     public static void sendCommandToPython(String command) {
-        try (Socket socket = new Socket("localhost", 12346);
+        try (Socket socket = new Socket("localhost", 12347);
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
             out.println(command); // Send the command to the Python server
             System.out.println("Sent command: " + command);

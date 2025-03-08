@@ -8,6 +8,10 @@ pygame.mixer.init()
 # Set your playlist path from config or elsewhere
 Playlist_path = ""
 
+# Global variable to store the song state (paused or playing)
+is_playing = False
+current_song = ""
+
 def getPath():
     with open('config.properties', 'r') as file:
         for line in file:
@@ -20,22 +24,47 @@ def getPath():
     return Playlist_path
 
 def play_song(song):
+    global is_playing, current_song
     # Construct full path to the song
     song_path = os.path.join(Playlist_path, song)
-    
+
     # Load and play the song
     if os.path.exists(song_path):
         pygame.mixer.music.load(song_path)
         pygame.mixer.music.play()
+        is_playing = True
+        current_song = song
         print(f"Playing: {song_path}")
         return "Playing: " + song_path
     else:
         print(f"Error: {song_path} does not exist.")
         return "Error: Song does not exist"
 
+def pause_music():
+    global is_playing
+    if is_playing:
+        pygame.mixer.music.pause()
+        is_playing = False
+        print("Music paused.")
+        return "Music paused."
+    else:
+        print("No music is playing to pause.")
+        return "No music is playing to pause."
+
+def resume_music():
+    global is_playing
+    if not is_playing:
+        pygame.mixer.music.unpause()
+        is_playing = True
+        print("Music resumed.")
+        return "Music resumed."
+    else:
+        print("Music is already playing.")
+        return "Music is already playing."
+
 def start_player():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('localhost', 12346))  # Listen on port 12346
+    server.bind(('localhost', 12347)) 
     server.listen(1)
     print("Server started and waiting for connections...")
 
@@ -51,11 +80,9 @@ def start_player():
             getPath()
             response = "Player started..."
         elif data == "play pause":
-            pygame.mixer.music.pause()
-            response = "Pausing player..."
+            response = pause_music()
         elif data == "play resume":
-            pygame.mixer.music.unpause()
-            response = "Resuming player..."
+            response = resume_music()
         elif data.startswith("play"):
             if len(data.split()) > 1:
                 song_to_play = data.split()[1]  # Get the song name
