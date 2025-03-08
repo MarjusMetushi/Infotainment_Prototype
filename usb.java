@@ -5,18 +5,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Properties;
-import javax.swing.*;
-
-/*
- * How to identify the playlists?
- * Idea: 
- * - On the playlist folder, count only the folders inside
- * - When the user is prompted, he is given only the option to select the playlists listed inside that folder
- * - After uses presses where to add, Make a function to migrate a file there 
- * - For that I need to use Files.move(Path source, Path target)
- */
-
-//TODO: Add a "add to playlist" functionality and create an arraylist with playlists names and the names of playlists in the config file  
+import javax.swing.*; 
 
 public class usb {
     // Declare variables
@@ -28,12 +17,14 @@ public class usb {
     static JPanel panel;
     static JPanel lowerPanel;
     static int elements = 0;
+    static String playlistPath = "";
 
     public static void startusb() {
         // Load config to load system's variables
         loadConfig();
         backgroundColor = getColorFromString(config.getProperty("backgroundColor", "white"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor", "black"));
+        playlistPath = config.getProperty("PlaylistPath").strip().trim();
 
         // UI and costumization
         dialog = new JDialog();
@@ -213,9 +204,14 @@ public class usb {
                 JButton addToPlaylist = new JButton("Add to playlist");
                 customizeButton(addToPlaylist);
                 addToPlaylist.addActionListener(e -> {
-                    promptPlaylists();
+                    try {
+                        promptPlaylists(file.getAbsolutePath());
+                    } catch (IOException e1) {
+                        e1.printStackTrace(); // DEBUGGING
+                    }
                 });
                 buttonPanel.add(playButton);
+                buttonPanel.add(addToPlaylist);
             } 
             // Unsupported formats
             else {
@@ -254,10 +250,21 @@ public class usb {
     }
     
     // Helper method to prompt the user to select a playlist
-    private static void promptPlaylists() {
+    private static void promptPlaylists(String sourcePath) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Only allow directories to be selected
+        fileChooser.setDialogTitle("Select Playlist"); // Set the title of the dialog
+        fileChooser.setCurrentDirectory(new File(playlistPath));
+        int returnVal = fileChooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            String savePath = fileChooser.getSelectedFile().getAbsolutePath();
+            saveSongToPlaylist(sourcePath, savePath);
+        }
+    }
+
+    // Helper method to save a song to the playlist
+    private static void saveSongToPlaylist(String sourcePath, String savePath) throws IOException{
+        Files.copy(Paths.get(sourcePath), Paths.get(savePath, new File(sourcePath).getName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
     // Helper method to open pdf files differently from txt and md files
@@ -270,7 +277,6 @@ public class usb {
         JDialog textDialog = new JDialog();
         textDialog.setTitle(file.getName());
         textDialog.setSize(400, 300);
-        
 
         JTextArea textArea = new JTextArea();
         try {

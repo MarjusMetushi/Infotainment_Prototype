@@ -33,6 +33,7 @@ public class UserInterface extends JFrame {
     JButton volumeUpButton = new JButton("+");
     JButton volumeDownButton = new JButton("-");
     JButton muteButton = new JButton("MUTE");
+    boolean pause = false;
     //Constructor to set up the UI
     @SuppressWarnings({ "OverridableMethodCallInConstructor", "static-access" })
     public UserInterface(){
@@ -365,13 +366,44 @@ public class UserInterface extends JFrame {
         JPanel musicPanel = new JPanel(new GridLayout(1, 4, 10, 10));
         musicPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 110, 20));
         JButton pauseOrPlay = new JButton("Pause/Play");
+        pauseOrPlay.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (pause) {
+                    pause = false;
+                    pauseOrPlay.setText("Play");
+                    playlist.resume();
+                } else {
+                    pause = true;
+                    pauseOrPlay.setText("Pause");
+                    playlist.pause();
+                }
+            }
+        });
         JButton previous = new JButton("<<");
+        previous.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                playlist.previous();
+            }
+        });
         //SET THE LOGIC TO MAKE A MARQUEE LIKE EFFECT FOR THE JTEXTFIELD!!!
-        JTextField playing = new JTextField("Now Playing: Song 1234");
+        JButton playing = new JButton("Now Playing: Song 1234");
+        playing.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                playlist.selectPlaylist();
+            }
+        });
         playing.setFont(new Font("Arial",Font.BOLD,12));
         JButton next = new JButton(">>");
+        next.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                playlist.next();
+            }
+        });
         //Customization for the buttons and panels
-        playing.setEditable(false);
         playing.setHorizontalAlignment(JTextField.CENTER);
         playing.setBorder(BorderFactory.createLineBorder(buttonBorderColor,2));
         musicPanel.setBackground(backgroundColor);
