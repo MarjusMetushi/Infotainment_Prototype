@@ -35,7 +35,7 @@ public class UserInterface extends JFrame {
     JButton muteButton = new JButton("MUTE");
     boolean pause = false;
     //Constructor to set up the UI
-    @SuppressWarnings({ "OverridableMethodCallInConstructor", "static-access" })
+    @SuppressWarnings({ "OverridableMethodCallInConstructor"})
     public UserInterface(){
         if(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")){
             currentVolume = getSystemVolumeWin();
