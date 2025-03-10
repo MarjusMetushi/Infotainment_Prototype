@@ -32,6 +32,9 @@ public class playlist {
         }
     }
     
+    public static void shutdown() {
+        sendCommandToPython("shutdown");
+    }
 
     public static void next() {
         sendCommandToPython("next");

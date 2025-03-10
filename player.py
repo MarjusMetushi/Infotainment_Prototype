@@ -2,8 +2,10 @@ import socket
 import pygame
 import os
 import threading
+import json
 
-# TODO: Add shuffling
+# TODO: Review some issues with resetting when opening the GUI, play/pause buttons coordination and observation of player_state.json and config.properties
+# TODO: Replace the cpp program with commands for volume here in python
 
 # Initialize pygame mixer
 pygame.mixer.init()
@@ -16,6 +18,7 @@ allsongs = []
 to_play = []
 played = []
 last_song_index = 0
+state_file = "player_state.json"
 
 # Lock for thread safety
 lock = threading.Lock()
@@ -31,22 +34,36 @@ def getPath():
 
                 if key == "PlaylistPath":
                     Playlist_path = os.path.normpath(value)  # Normalize base path
+                    print(Playlist_path)
                 elif key == "lastSongIndex":
                     last_song_index = int(value)
+    
+    get_all_songs()
+    load_stacks()
 
-    load_stacks(); # load the music 
-    print(f"Playlist Path: {Playlist_path}")
-    print(f"to_play List: {to_play}")  # Debugging
+def save_state():
+    """ Saves the current state of the player to a JSON file. """
+    global current_song
+    if not current_song:
+        return
+    state = {
+        "last_song": current_song,
+        "last_position" : pygame.mixer.music.get_pos() // 1000
+    }
 
-# TODO: Load the stacks from the config file
+    with open(state_file, 'w') as file:
+        json.dump(state, file)
+    
+
 def load_stacks():
     """ Loads the stacks from the config file. """
+    
     global to_play, played
     played = allsongs[:last_song_index]
     to_play = allsongs[last_song_index:]
 
 
-def play_song(song):
+def play_song(song, start_position=0):
     global is_playing, current_song
 
     song_path = os.path.normpath(song)  # Ensure path is correctly formatted
@@ -54,6 +71,8 @@ def play_song(song):
     if os.path.exists(song_path):
         pygame.mixer.music.load(song_path)
         pygame.mixer.music.play()
+        pygame.time.delay(500)
+        pygame.mixer.music.set_pos(start_position)
         is_playing = True
         current_song = song
         print(f"Playing: {song_path}")
@@ -84,14 +103,34 @@ def resume_music():
 
 def write_config():
     """Writes the updated playlist state back to the config file."""
-    global to_play, played
+    global to_play, played, last_song_index
+
+    # Load existing config if it exists
+    config_data = {}
+    try:
+        with open('config.properties', 'r') as file:
+            for line in file:
+                line = line.strip()
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    config_data[key.strip()] = value.strip()
+    except FileNotFoundError:
+        print("Config file not found, creating a new one.")
+
+    # Update only the relevant fields
+    config_data['lastSongIndex'] = str(last_song_index)  # Convert to string
+    config_data['PlaylistPath'] = Playlist_path
+    config_data['toPlay'] = ','.join(to_play)
+    config_data['played'] = ','.join(played)
+
+    # Write the updated config back to the file
     with open('config.properties', 'w') as file:
-        file.write(f"PlaylistPath={Playlist_path}\n")
-        file.write(f"toPlay={','.join(to_play)}\n")
-        file.write(f"played={','.join(played)}\n")
+        for key, value in config_data.items():
+            file.write(f"{key}={value}\n")
+
 
 def load_next_song():
-    global to_play, played, current_song
+    global to_play, played, current_song, last_song_index
 
     if not to_play:
         print("No more songs to play.")
@@ -100,7 +139,8 @@ def load_next_song():
     # Move the current song to played stack if a song was playing
     if current_song:
         played.append(current_song)
-
+    last_song_index += 1
+    write_config()
     # Get and play the next song
     current_song = to_play.pop(0)
     return play_song(current_song)
@@ -110,19 +150,48 @@ def load_previous_song():
     global current_song
     with lock:
         if played:
-            to_play.insert(0, current_song) if current_song else None
+            if current_song:
+                to_play.insert(0, current_song)
             current_song = played.pop()
+            last_song_index -= 1
+            write_config()  # Save state BEFORE playing
             return play_song(current_song)
         return "No previous song available."
 
+
 def get_all_songs():
     """ Gets all the songs in the playlist. """
-    global allsongs
+    global allsongs, Playlist_path
     allsongs = []
     for song in os.listdir(Playlist_path):
         if song.endswith(".mp3"):
-            allsongs.append(song)
+            allsongs.append(os.path.join(Playlist_path, song))
     print(f"All songs: {allsongs}")
+
+def load_player_state():
+    """Loads the player state from the JSON file."""
+    global current_song
+    try:
+        with open(state_file, 'r') as file:
+            state = json.load(file)
+            last_song = state.get("last_song", None)
+            last_position = state.get("last_position", 0)
+
+            if not allsongs:
+                print("Error: No songs in the playlist!")
+                return
+            
+            if last_song and os.path.exists(last_song):
+                current_song = last_song
+                play_song(last_song, start_position=last_position)
+            else:
+                print(f"Error: Last song {last_song} does not exist. Playing first song.")
+                current_song = allsongs[0]
+    except (FileNotFoundError, json.JSONDecodeError):
+        print(f"No previous state found. Playing first song if available.")
+        if allsongs:
+            current_song = allsongs[0]
+
 
 def reset_player():
     """Resets the music player."""
@@ -134,6 +203,8 @@ def reset_player():
     return load_next_song()
 
 def shutdown(server):
+    save_state()
+    write_config()
     pygame.mixer.quit()
     server.close()
     return "Player shutdown."
@@ -144,8 +215,8 @@ def start_player():
     server.bind(('localhost', 12347))
     server.listen(1)
     print("Server started and waiting for connections...")
-    get_all_songs()
     getPath()
+    load_player_state()
     while True:
         client, address = server.accept()
         print(f"Connection from {address}")

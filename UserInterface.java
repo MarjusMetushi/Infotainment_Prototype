@@ -387,7 +387,7 @@ public class UserInterface extends JFrame {
         previous.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                playlist.previous();
+                playlist.shutdown();
             }
         });
         //SET THE LOGIC TO MAKE A MARQUEE LIKE EFFECT FOR THE JTEXTFIELD!!!
