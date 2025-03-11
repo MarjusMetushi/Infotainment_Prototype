@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import javax.swing.JFileChooser;
-
+// TODO: Fix the pygame volume boundaries and coordinate it with the bar
 public class playlist {
     // Declare the playlists and configuration
     public static String currentPathToPlaylist = "";
@@ -12,7 +12,7 @@ public class playlist {
     // Constructor to initialize the playlist
     public playlist() throws IOException {
         System.out.println("Starting player..."); // Prompt to check for errors
-        //Process p = new ProcessBuilder("python","player.py").start();
+        new ProcessBuilder("python","player.py").start(); // Start the Python server
     }
 
     // Method to read the current path of the playlist from the config file
@@ -43,13 +43,9 @@ public class playlist {
     public static void previous() {
         sendCommandToPython("prev");
     }
-    // Helper method to increase the volume
-    public static void volumeUp(){
-        sendCommandToPython("volume_up");
-    }
-    // Helper method to decrease the volume
-    public static void volumeDown(){
-        sendCommandToPython("volume_down");
+    // Helper method to set volume
+    public static void setVolume(float volume) {
+        sendCommandToPython(String.valueOf(volume));
     }
     // Helper method to mute/unmute
     public static void mute(){

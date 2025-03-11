@@ -37,6 +37,8 @@ public class UserInterface extends JFrame {
     JButton volumeDownButton = new JButton("-");
     JButton muteButton = new JButton("MUTE");
     boolean pause = false;
+    // pygame mixer volume
+    float pygameVolume;
     //Constructor to set up the UI
     @SuppressWarnings({ "OverridableMethodCallInConstructor"})
     public UserInterface(){
@@ -61,6 +63,7 @@ public class UserInterface extends JFrame {
         });
         thread1.start();
         //Getting the background and foreground colors from the properties file and getting the color from a string
+        pygameVolume = Float.parseFloat(config.getProperty("volume"));
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor"));
         if(backgroundColor == Color.BLACK)buttonBorderColor = Color.decode(config.getProperty("borderColor1"));
@@ -485,8 +488,9 @@ public class UserInterface extends JFrame {
                     }else{
                         currentVolume += 6;
                     }
+                    pygameVolume += 0.1f;
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.volumeUp();
+                    playlist.setVolume(pygameVolume);
                 } else if (command.equals("decrease")) {
                     com = nircmdPath + " changesysvolume -3900";
                     if (currentVolume - 6 < 0) {
@@ -494,8 +498,8 @@ public class UserInterface extends JFrame {
                     }else{
                         currentVolume -= 6;
                     }
+                    pygameVolume -= 0.1f;
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.volumeDown();
                 }
                 Runtime.getRuntime().exec(com);
             } else{
@@ -505,7 +509,8 @@ public class UserInterface extends JFrame {
                     com = "amixer sset Master 10%+";
                     currentVolume+=10;
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.volumeUp();
+                    pygameVolume += 0.1f;
+                    playlist.setVolume(pygameVolume);
                 } else if (command.equals("decrease")) {
                     com = "amixer sset Master 10%-";
                     if(currentVolume - 10 < 0){
@@ -513,8 +518,9 @@ public class UserInterface extends JFrame {
                     }else{
                         currentVolume -= 10;
                     }
+                    pygameVolume -= 0.1f;
                     volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.volumeDown();
+                    playlist.setVolume(currentVolume);
                 } else if(command.equals("mute") && muteButton.getText().equals("UNMUTE")){
                     muteButton.setText("MUTE");
                     com = "amixer sset Master unmute";

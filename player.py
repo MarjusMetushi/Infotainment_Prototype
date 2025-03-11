@@ -274,12 +274,6 @@ def start_player():
                 response = reset_player() # reset the player
             elif data == "shutdown":
                 response = shutdown(server) # shutdown the player and server
-            elif data == "volume_up":
-                volume_up() # increase the volume by 10%
-                response = "Volume increased."
-            elif data == "volume_down":
-                volume_down() # decrease the volume by 10%
-                response = "Volume decreased."
             elif data == "mute":
                 if pygame.mixer.music.get_volume() == 0: # check if the volume is 0
                     pygame.mixer.music.set_volume(0.1) # unmute the music
@@ -288,7 +282,11 @@ def start_player():
                     pygame.mixer.music.set_volume(0) # otherwise mute the music
                     response = "Music muted."
             else:
-                response = "Unknown command."
+                if int(data) >= 0 and int(data) <= 100:
+                    pygame.mixer.music.set_volume(int(data)/100)
+                    response = f"Volume set to {int(data)}%."
+                else:
+                    response = "Invalid command."
 
 
             client.send(response.encode()) # send back the response
