@@ -11,7 +11,7 @@ public class playlist {
 
     // Constructor to initialize the playlist
     public playlist() throws IOException {
-        System.out.println("Starting player...");
+        System.out.println("Starting player..."); // Prompt to check for errors
         //Process p = new ProcessBuilder("python","player.py").start();
     }
 
@@ -28,65 +28,72 @@ public class playlist {
             config.load(fileInputStream);
         } catch (IOException e) {
             // Handle missing config file or error loading it
-            System.err.println("Error loading config file: " + e.getMessage());
+            System.err.println("Error loading config file: " + e.getMessage()); // checking for errors
         }
     }
-    
+    // Helper method to shut down the server
     public static void shutdown() {
         sendCommandToPython("shutdown");
     }
-
+    // Helper method to play the next song
     public static void next() {
         sendCommandToPython("next");
     }
-
+    // Helper method to play the previous song
     public static void previous() {
         sendCommandToPython("prev");
     }
-
+    // Helper method to increase the volume
+    public static void volumeUp(){
+        sendCommandToPython("volume_up");
+    }
+    // Helper method to decrease the volume
+    public static void volumeDown(){
+        sendCommandToPython("volume_down");
+    }
+    // Helper method to mute/unmute
+    public static void mute(){
+        sendCommandToPython("mute");
+    }
+    // Helper method to reset the player
     public static void pause() {
         sendCommandToPython("pause");
     }
-
+    // Helper method to resume the music
     public static void resume() {
         sendCommandToPython("resume");
     }
-
+    // Helper method to select a playlist path 
     public static void selectPlaylist() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // allow only directories
         fileChooser.setDialogTitle("Select Playlist");
         fileChooser.setCurrentDirectory(new File(currentPathToPlaylist));
         int returnVal = fileChooser.showOpenDialog(null);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             String savePath = fileChooser.getSelectedFile().getAbsolutePath();
-            overwritePlaylistPath(savePath);
+            overwritePlaylistPath(savePath); // Overwrite the current path at config
         }
     }
     
-
+    // Helper method that writes the new path to the config file
     public static void overwritePlaylistPath(String savePath) {
         savePath = savePath.replace("\\", "/");
-        config.setProperty("PlaylistPath", savePath);
+        config.setProperty("PlaylistPath", savePath); // Writing to the correct property
         try {
-            config.store(new FileWriter("config.properties"), "");
+            config.store(new FileWriter("config.properties"), ""); // storing the information
         } catch (IOException e) {
-            e.printStackTrace();
+            // DEBUGGING
         }
     }
-
+    // Helper method that communicates commands to the Python server
     public static void sendCommandToPython(String command) {
-        try (Socket socket = new Socket("localhost", 12347);
+        try (Socket socket = new Socket("localhost", 12347); // Connect to this port in the local machine
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-                if (firstTime) {
-                    out.println("start");
-                    firstTime = false;
-                    return;
-                }
             out.println(command); // Send the command to the Python server
             System.out.println("Sent command: " + command);
         } catch (IOException e) {
-            e.printStackTrace();
+            // DEBUGGING
         }
     }
 }

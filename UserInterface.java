@@ -12,8 +12,11 @@ import javax.swing.border.LineBorder;
  *  Add the dashcam functionality
  *  Update the speed continuously in a thread
  *  IMPLEMENT THE LOGIC FOR THE MARQUEE
- *  implement the functionality for linux systems to play a song and test it
  */
+
+ // TODO: Create a button designed to shut down the player and server
+ // TODO: Extract the name of the current song from the json file and display it in the GUI
+
 public class UserInterface extends JFrame {
     //Setting up basic settings
     int uiWidth = 1280;
@@ -468,10 +471,12 @@ public class UserInterface extends JFrame {
                     muteButton.setText("UNMUTE");
                     com = nircmdPath + " mutesysvolume 1";
                     volumeBarPanel.setCurrentVolume(0);
+                    playlist.mute();
                 } else if(command.equals("mute") && muteButton.getText().equals("UNMUTE")){
                     muteButton.setText("MUTE");
                    com = nircmdPath + " mutesysvolume 0";
                     volumeBarPanel.setCurrentVolume(currentVolume);
+                    playlist.mute();
                 }
                 if (command.equals("increase")) {
                     com = nircmdPath + " changesysvolume 3900";
@@ -481,6 +486,7 @@ public class UserInterface extends JFrame {
                         currentVolume += 6;
                     }
                     volumeBarPanel.setCurrentVolume(currentVolume);
+                    playlist.volumeUp();
                 } else if (command.equals("decrease")) {
                     com = nircmdPath + " changesysvolume -3900";
                     if (currentVolume - 6 < 0) {
@@ -489,6 +495,7 @@ public class UserInterface extends JFrame {
                         currentVolume -= 6;
                     }
                     volumeBarPanel.setCurrentVolume(currentVolume);
+                    playlist.volumeDown();
                 }
                 Runtime.getRuntime().exec(com);
             } else{
@@ -498,6 +505,7 @@ public class UserInterface extends JFrame {
                     com = "amixer sset Master 10%+";
                     currentVolume+=10;
                     volumeBarPanel.setCurrentVolume(currentVolume);
+                    playlist.volumeUp();
                 } else if (command.equals("decrease")) {
                     com = "amixer sset Master 10%-";
                     if(currentVolume - 10 < 0){
@@ -506,6 +514,7 @@ public class UserInterface extends JFrame {
                         currentVolume -= 10;
                     }
                     volumeBarPanel.setCurrentVolume(currentVolume);
+                    playlist.volumeDown();
                 } else if(command.equals("mute") && muteButton.getText().equals("UNMUTE")){
                     muteButton.setText("MUTE");
                     com = "amixer sset Master unmute";
@@ -515,10 +524,12 @@ public class UserInterface extends JFrame {
                         currentVolume += 10;
                     }
                     volumeBarPanel.setCurrentVolume(currentVolume);
+                    playlist.mute();
                 }else{
                     muteButton.setText("UNMUTE");
                     com = "amixer sset Master mute";
                     volumeBarPanel.setCurrentVolume(0);
+                    playlist.mute();
                 }
 
                 if (com != null) {
