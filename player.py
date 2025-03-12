@@ -3,7 +3,7 @@ import pygame
 import os
 import threading
 import json
-# TODO: Get the song name and save it in config
+# TODO: Recheck everything something does not work correctly in the stacks or something
 # Initialize pygame mixer
 pygame.mixer.init()
 
@@ -56,20 +56,6 @@ def save_state():
     # write the state to the json file
     with open(state_file, 'w') as file:
         json.dump(state, file)
-    
-# function to increase the volume by 10%
-def volume_up():
-    """ Increases the volume by 10%. """
-    global volume
-    volume += 0.1
-    pygame.mixer.music.set_volume(volume)
-
-# function to decrease the volume by 10%
-def volume_down():
-    """ Decreases the volume by 10%. """
-    global volume
-    volume -= 0.1
-    pygame.mixer.music.set_volume(volume)
 
 # function to load the stacks from the config file
 def load_stacks():
@@ -262,16 +248,20 @@ def start_player():
                 getPath() # get the playlist path
                 print(f"Loaded to_play list: {to_play}")  # Debugging
                 response = load_next_song()
+                client.send("check")
             elif data == "pause":
                 response = pause_music() # pause the music
             elif data == "resume":
                 response = resume_music() # resume the music
             elif data == "next":
                 response = load_next_song() # load the next song
+                client.send("check")
             elif data == "prev":
                 response = load_previous_song() # load the previous song
+                client.send("check")
             elif data == "reset":
                 response = reset_player() # reset the player
+                client.send("check")
             elif data == "shutdown":
                 response = shutdown(server) # shutdown the player and server
             elif data == "mute":
@@ -282,9 +272,9 @@ def start_player():
                     pygame.mixer.music.set_volume(0) # otherwise mute the music
                     response = "Music muted."
             else:
-                if int(data) >= 0 and int(data) <= 100:
-                    pygame.mixer.music.set_volume(int(data)/100)
-                    response = f"Volume set to {int(data)}%."
+                if float(data) >= 0.0 and float(data) <= 1.0:
+                    pygame.mixer.music.set_volume(float(data))
+                    response = f"Volume set to {float(data)}%."
                 else:
                     response = "Invalid command."
 

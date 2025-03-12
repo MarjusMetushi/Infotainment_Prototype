@@ -85,8 +85,10 @@ public class playlist {
     // Helper method that communicates commands to the Python server
     public static void sendCommandToPython(String command) {
         try (Socket socket = new Socket("localhost", 12347); // Connect to this port in the local machine
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             out.println(command); // Send the command to the Python server
+            UserInterface.readName();
             System.out.println("Sent command: " + command);
         } catch (IOException e) {
             // DEBUGGING
