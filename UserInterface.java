@@ -38,7 +38,7 @@ public class UserInterface extends JFrame {
     JButton volumeDownButton = new JButton("-");
     JButton muteButton = new JButton("MUTE");
     boolean pause = false;
-    public static JButton playing = new JButton("Now Playing: Song 1234");
+    public static MarqueeButton playing = new MarqueeButton("");
     // pygame mixer volume
     float pygameVolume;
 
@@ -426,7 +426,7 @@ public class UserInterface extends JFrame {
                 playlist.selectPlaylist();
             }
         });
-        playing.setFont(new Font("Arial", Font.BOLD, 12));
+        playing.setFont(new Font("Arial", Font.BOLD, 14));
         JButton next = new JButton(">>");
         next.addActionListener(new ActionListener() {
             @Override
@@ -437,6 +437,8 @@ public class UserInterface extends JFrame {
         // Customization for the buttons and panels
         playing.setHorizontalAlignment(JTextField.CENTER);
         playing.setBorder(BorderFactory.createLineBorder(buttonBorderColor, 2));
+        playing.setMaximumSize(new Dimension(120, 30));
+        playing.setMinimumSize(new Dimension(120, 30));
         musicPanel.setBackground(backgroundColor);
         musicPanel.setForeground(foregroundColor);
         appsPanel.setBackground(backgroundColor);
@@ -662,7 +664,7 @@ public class UserInterface extends JFrame {
                 // Split the path by '\\' and store it in an array
                 String[] pathArray = lastSong.split("\\\\");
                 String musicName = pathArray[pathArray.length - 1];
-                playing.setText(musicName);
+                playing.updateText(musicName);;
             }
             
         } catch (IOException e) {

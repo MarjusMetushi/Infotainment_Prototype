@@ -3,7 +3,7 @@ import pygame
 import os
 import threading
 import json
-# TODO: Recheck everything something does not work correctly in the stacks or something
+# TODO: Recheck everything something does not work correctly in the stacks or something, there is no coordination
 # Initialize pygame mixer
 pygame.mixer.init()
 
