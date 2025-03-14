@@ -3,7 +3,7 @@ import pygame
 import os
 import threading
 import json
-# TODO: Recheck everything something does not work correctly in the stacks or something, there is no coordination
+# TODO: TEST PREVIOUS
 # Initialize pygame mixer
 pygame.mixer.init()
 
@@ -14,7 +14,7 @@ current_song = ""
 allsongs = []
 to_play = []
 played = []
-last_song_index = 0
+last_song_index = 1
 state_file = "player_state.json"
 volume = 0.3
 
@@ -60,7 +60,7 @@ def save_state():
 # function to load the stacks from the config file
 def load_stacks():
     """ Loads the stacks from the config file. """
-    global to_play, played
+    global to_play, played, last_song_index, allsongs
 
     played = allsongs[:last_song_index] # set all the played songs in the previous songs stack
     to_play = allsongs[last_song_index:] # set all the songs to play in the next songs stack
@@ -70,7 +70,6 @@ def play_song(song, start_position=0):
     global is_playing, current_song
 
     song_path = os.path.normpath(song)  # Ensure path is correctly formatted
-
     if os.path.exists(song_path): # case check to see if the song exists
         pygame.mixer.music.load(song_path) # load into player
         pygame.mixer.music.play() # start playing
@@ -108,7 +107,7 @@ def resume_music():
 # function to write to the config file
 def write_config():
     """Writes the updated playlist state back to the config file."""
-    global to_play, played, last_song_index
+    global to_play, played, last_song_index, volume, Playlist_path
 
     # Load existing config if it exists
     config_data = {}
@@ -142,14 +141,13 @@ def load_next_song():
         last_song_index = 0 # set the last song index to 0 to restart the playlist
         write_config() # apply the changes
         load_stacks() # load the stacks again, start from the beginning
-
-    # Move the current song to played stack if a song was playing
-    if current_song:
-        played.append(current_song) # move the current song to the previous stack
+        return
+    
+    
+    current_song = to_play.pop()
+    played.append(current_song) # move the current song to the previous stack
     last_song_index += 1 # increment the last song index
     write_config() # apply changes
-    # Get and play the next song
-    current_song = to_play.pop(0)
     save_state() # save the state
     return play_song(current_song)
 
@@ -248,20 +246,16 @@ def start_player():
                 getPath() # get the playlist path
                 print(f"Loaded to_play list: {to_play}")  # Debugging
                 response = load_next_song()
-                client.send("check")
             elif data == "pause":
                 response = pause_music() # pause the music
             elif data == "resume":
                 response = resume_music() # resume the music
             elif data == "next":
                 response = load_next_song() # load the next song
-                client.send("check")
             elif data == "prev":
                 response = load_previous_song() # load the previous song
-                client.send("check")
             elif data == "reset":
                 response = reset_player() # reset the player
-                client.send("check")
             elif data == "shutdown":
                 response = shutdown(server) # shutdown the player and server
             elif data == "mute":
@@ -277,9 +271,9 @@ def start_player():
                     response = f"Volume set to {float(data)}%."
                 else:
                     response = "Invalid command."
-
-
-            client.send(response.encode()) # send back the response
+            write_config() # write the changes
+            save_state() # save the state
+            client.send(response.encode()) # send back the response to the client
 
         except Exception as e:
             print(f"Error handling request: {e}")

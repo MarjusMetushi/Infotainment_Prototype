@@ -41,6 +41,7 @@ public class UserInterface extends JFrame {
     public static MarqueeButton playing = new MarqueeButton("");
     // pygame mixer volume
     float pygameVolume;
+    watcher w = new watcher();
 
     // Constructor to set up the UI
     @SuppressWarnings({ "OverridableMethodCallInConstructor" })
@@ -211,6 +212,9 @@ public class UserInterface extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    watcher.stop();
+                }));
                 playlist.shutdown();
             }
 
@@ -455,7 +459,9 @@ public class UserInterface extends JFrame {
         musicPanel.add(next);
         bottomRightPanel.add(musicPanel, BorderLayout.SOUTH);
         bottomRightPanel.add(appsPanel, BorderLayout.CENTER);
-        readName();
+        w = new watcher();
+        Thread t = new Thread(w);
+        t.start();
     }
 
     // Method to Customize musicPanel's Buttons
@@ -656,7 +662,7 @@ public class UserInterface extends JFrame {
         try {
             // Get the JSON
             String content = new String(Files.readAllBytes(Paths.get("player_state.json")));
-            System.out.println(content);
+
             if(content.startsWith("{")){
                 JSONObject jsonObject = new JSONObject(content);
                 String lastSong = jsonObject.getString("last_song");
@@ -664,7 +670,7 @@ public class UserInterface extends JFrame {
                 // Split the path by '\\' and store it in an array
                 String[] pathArray = lastSong.split("\\\\");
                 String musicName = pathArray[pathArray.length - 1];
-                playing.updateText(musicName);;
+                playing.updateText(musicName);
             }
             
         } catch (IOException e) {

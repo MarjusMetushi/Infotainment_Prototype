@@ -88,8 +88,8 @@ public class playlist {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             out.println(command); // Send the command to the Python server
-            UserInterface.readName();
             System.out.println("Sent command: " + command);
+
         } catch (IOException e) {
             // DEBUGGING
         }

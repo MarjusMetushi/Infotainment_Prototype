@@ -50,7 +50,6 @@ public class MarqueeButton extends JButton {
         this.text = newText;
         this.displayedText = newText;
         this.textWidth = getFontMetrics(getFont()).stringWidth(text);
-        this.xPos = getWidth(); // Reset position when the text changes
         repaint();
     }
 }
