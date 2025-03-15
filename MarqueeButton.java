@@ -12,13 +12,13 @@ public class MarqueeButton extends JButton {
     public MarqueeButton(String initialText) {
         super(initialText);
         this.text = initialText;
-        this.setPreferredSize(new Dimension(160, 30));
+        this.setPreferredSize(new Dimension(160, 30)); // Set size
         this.setMaximumSize(new Dimension(160, 30));
         this.setMinimumSize(new Dimension(160, 30));
-        this.displayedText = initialText;
-        this.xPos = getWidth();
-        this.textWidth = getFontMetrics(getFont()).stringWidth(text);
-        startMarquee();
+        this.displayedText = initialText; // Set initial text
+        this.xPos = getWidth(); // Set initial position
+        this.textWidth = getFontMetrics(getFont()).stringWidth(text); // Calculate the width of the text
+        startMarquee(); // Start the marquee effect
     }
 
     private void startMarquee() {
@@ -45,7 +45,7 @@ public class MarqueeButton extends JButton {
         g.drawString(displayedText, xPos, ((getHeight() / 2)-2) + getFont().getSize() / 2);
     }
 
-    // Method to dynamically update the text and reset the scroll position
+    // Method to dynamically update the text
     public void updateText(String newText) {
         this.text = newText;
         this.displayedText = newText;

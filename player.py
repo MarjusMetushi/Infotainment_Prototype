@@ -16,7 +16,7 @@ to_play = []
 played = []
 last_song_index = 1
 state_file = "player_state.json"
-volume = 0.3
+volume = 0.1
 
 # Lock for thread safety
 lock = threading.Lock()

@@ -8,7 +8,6 @@ import java.util.*;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
-
 import org.json.JSONObject;
 
 /*
@@ -17,6 +16,7 @@ import org.json.JSONObject;
  *  Update the speed continuously in a thread
  *  IMPLEMENT THE LOGIC FOR THE MARQUEE
  */
+//TODO: Fix previous song functionality
 
 public class UserInterface extends JFrame {
     // Setting up basic settings
@@ -31,27 +31,19 @@ public class UserInterface extends JFrame {
     JPanel bottomPanel = new JPanel(new GridBagLayout());
     JPanel bottomLeftPanel = new JPanel(new GridLayout(2, 1));
     JPanel bottomRightPanel = new JPanel(new BorderLayout());
-    int currentVolume;
-    VolumeBarPanel volumeBarPanel = new VolumeBarPanel(currentVolume);
+    Float currentVolume = 0.1f;
+    VolumeBarPanel volumeBarPanel = new VolumeBarPanel((int)(currentVolume * 100));
     // Setting up the buttons
     JButton volumeUpButton = new JButton("+");
     JButton volumeDownButton = new JButton("-");
     JButton muteButton = new JButton("MUTE");
     boolean pause = false;
     public static MarqueeButton playing = new MarqueeButton("");
-    // pygame mixer volume
-    float pygameVolume;
     watcher w = new watcher();
 
     // Constructor to set up the UI
     @SuppressWarnings({ "OverridableMethodCallInConstructor" })
     public UserInterface() {
-        if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) {
-            currentVolume = getSystemVolumeWin();
-        } else {
-            currentVolume = getSystemVolumeLinux();
-        }
-        volumeBarPanel.setCurrentVolume(currentVolume);
         // Loading settings
         loadConfig();
         // Loading the playlist
@@ -68,9 +60,10 @@ public class UserInterface extends JFrame {
         thread1.start();
         // Getting the background and foreground colors from the properties file and
         // getting the color from a string
-        pygameVolume = Float.parseFloat(config.getProperty("volume"));
+        currentVolume = Float.parseFloat(config.getProperty("volume"));
         backgroundColor = getColorFromString(config.getProperty("backgroundColor"));
         foregroundColor = getColorFromString(config.getProperty("foregroundColor"));
+        volumeBarPanel.setCurrentVolume((int) (currentVolume*100));
         if (backgroundColor == Color.BLACK)
             buttonBorderColor = Color.decode(config.getProperty("borderColor1"));
         else
@@ -122,58 +115,6 @@ public class UserInterface extends JFrame {
         } catch (IOException e) {
             // For debugging
         }
-    }
-
-    // Method to get the system volume
-    public static int getSystemVolumeWin() {
-        try {
-            // Path to the executable
-            String exePath = "output/getSystemVolume.exe";
-            // Get the input stream from the executable
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(
-                            new ProcessBuilder(exePath).start().getInputStream()));
-            // Read the output line by line
-            String outputLine = reader.readLine();
-            // Parse the output line to an integer
-            int volumePercentage = (outputLine != null)
-                    ? Integer.parseInt(outputLine.replaceAll("[^0-9]", ""))
-                    : -1; // Fallback if no output
-            // Close the reader
-            reader.close();
-            return volumePercentage;
-        } catch (IOException e) {
-            // For debugging
-        }
-        // Fallback in case of error
-        return -1;
-    }
-
-    public static int getSystemVolumeLinux() {
-        int volume = -1; // Default if parsing fails
-        try {
-            // Execute the command to get the current volume
-            Process process = Runtime.getRuntime().exec("amixer sget Master");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Look for a line with volume information
-                if (line.contains("Playback")) {
-                    // Extract the percentage value
-                    int start = line.indexOf("[") + 1;
-                    int end = line.indexOf("%");
-                    if (start > 0 && end > start) {
-                        volume = Integer.parseInt(line.substring(start, end));
-                        break;
-                    }
-                }
-            }
-            process.waitFor();
-        } catch (Exception e) {
-            // For debugging
-        }
-        return volume;
     }
 
     // Method to add components to the top panel and Customize
@@ -497,109 +438,30 @@ public class UserInterface extends JFrame {
 
     // Method to control the volume
     public void volumeCommands(String command) throws IOException {
-        // TODO: SET BOUNDS FOR THE PYGAME VOLUME AND GET RID OF THE C++ IMPLEMENTATION
-        String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-        try {
-            // Volume control for Windows
-            if (os.contains("win")) {
-                String com = null;
-                // Use nircmd.exe to control the volume
-                String nircmdPath = "lib\nircmd.exe";
-                System.out.println("Running on Windows. Executing command: " + command);
-                if (command.equals("mute") && muteButton.getText().equals("MUTE")) {
-                    muteButton.setText("UNMUTE");
-                    com = nircmdPath + " mutesysvolume 1";
-                    volumeBarPanel.setCurrentVolume(0);
-                    playlist.mute();
-                } else if (command.equals("mute") && muteButton.getText().equals("UNMUTE")) {
-                    muteButton.setText("MUTE");
-                    com = nircmdPath + " mutesysvolume 0";
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.mute();
-                }
-                if (command.equals("increase")) {
-                    com = nircmdPath + " changesysvolume 3900";
-                    if (currentVolume + 6 > 100) {
-                        currentVolume = 100;
-                    } else {
-                        currentVolume += 6;
-                    }
-                    pygameVolume += 0.1f;
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.setVolume(pygameVolume);
-                } else if (command.equals("decrease")) {
-                    com = nircmdPath + " changesysvolume -3900";
-                    if (currentVolume - 6 < 0) {
-                        currentVolume = 0;
-                    } else {
-                        currentVolume -= 6;
-                    }
-                    pygameVolume -= 0.1f;
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                }
-                Runtime.getRuntime().exec(com);
-            } else {
-                // Volume control for Linux distributions
-                String com = null;
-                if (command.equals("increase")) {
-                    com = "amixer sset Master 10%+";
-                    currentVolume += 10;
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    pygameVolume += 0.1f;
-                    playlist.setVolume(pygameVolume);
-                } else if (command.equals("decrease")) {
-                    com = "amixer sset Master 10%-";
-                    if (currentVolume - 10 < 0) {
-                        currentVolume = 0;
-                    } else {
-                        currentVolume -= 10;
-                    }
-                    pygameVolume -= 0.1f;
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.setVolume(currentVolume);
-                } else if (command.equals("mute") && muteButton.getText().equals("UNMUTE")) {
-                    muteButton.setText("MUTE");
-                    com = "amixer sset Master unmute";
-                    if (currentVolume + 10 > 100) {
-                        currentVolume = 100;
-                    } else {
-                        currentVolume += 10;
-                    }
-                    volumeBarPanel.setCurrentVolume(currentVolume);
-                    playlist.mute();
-                } else {
-                    muteButton.setText("UNMUTE");
-                    com = "amixer sset Master mute";
-                    volumeBarPanel.setCurrentVolume(0);
-                    playlist.mute();
-                }
-
-                if (com != null) {
-                    try {
-                        // Execute the command
-                        Process process = Runtime.getRuntime().exec(com);
-
-                        // Read the output
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            System.out.println(line);
-                        }
-
-                        // Wait for the command to complete
-                        int exitCode = process.waitFor();
-                        if (exitCode == 0) {
-                            System.out.println("Volume adjusted successfully!");
-                        } else {
-                            System.err.println("Failed to adjust volume. Exit code: " + exitCode);
-                        }
-                    } catch (Exception e) {
-                        // For debugging
-                    }
-                }
+        if (command.equals("mute")) {
+            if (muteButton.getText().equals("MUTE")) {
+                muteButton.setText("UNMUTE");
+                volumeBarPanel.setCurrentVolume(0);
+            }else{
+                muteButton.setText("MUTE");
+                volumeBarPanel.setCurrentVolume((int) (0.1f * 100));
             }
+            playlist.mute();
+        }else if (command.equals("increase")) {
+            currentVolume = Math.min(currentVolume + 0.1f, 1.0f);
+            playlist.setVolume(currentVolume);
+            volumeBarPanel.setCurrentVolume((int) (currentVolume * 100));
+        } else if (command.equals("decrease")) {
+            currentVolume = Math.max(currentVolume - 0.1f, 0.0f);
+            playlist.setVolume(currentVolume);
+            volumeBarPanel.setCurrentVolume((int) (currentVolume * 100));
+        }   
+        // write the changes to the config file
+        config.setProperty("volume", String.valueOf(currentVolume));
+        try {
+            config.store(new FileWriter("config.properties"), "");
         } catch (IOException e) {
-            // For debugging
+            // DEBUGGING
         }
     }
 
@@ -657,20 +519,20 @@ public class UserInterface extends JFrame {
             // For debugging
         }
     }
-
+    // Helper method to read the name of the current song at the JSON file
     public static void readName() {
         try {
             // Get the JSON
             String content = new String(Files.readAllBytes(Paths.get("player_state.json")));
-
+            // Check if the JSON is valid
             if(content.startsWith("{")){
                 JSONObject jsonObject = new JSONObject(content);
-                String lastSong = jsonObject.getString("last_song");
+                String lastSong = jsonObject.getString("last_song"); // Get the last song
 
                 // Split the path by '\\' and store it in an array
                 String[] pathArray = lastSong.split("\\\\");
                 String musicName = pathArray[pathArray.length - 1];
-                playing.updateText(musicName);
+                playing.updateText(musicName); // Set the text to the song playing
             }
             
         } catch (IOException e) {

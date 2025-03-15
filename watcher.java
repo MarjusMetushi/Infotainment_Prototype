@@ -1,15 +1,14 @@
 public class watcher implements Runnable {
     private volatile static boolean running = true;
-
+    // Method to stop the thread
     public static void stop() {
         try {
-            running = false;
+            running = false; // flag to stop the thread
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            //DEBUGGING
         }
     }
-
+    // Method to start the thread
     @Override
     public void run() {
         while (running) {
