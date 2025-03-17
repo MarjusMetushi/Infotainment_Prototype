@@ -16,7 +16,6 @@ import org.json.JSONObject;
  *  Update the speed continuously in a thread
  *  IMPLEMENT THE LOGIC FOR THE MARQUEE
  */
-//TODO: Fix previous song functionality
 
 public class UserInterface extends JFrame {
     // Setting up basic settings

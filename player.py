@@ -154,17 +154,16 @@ def load_next_song():
 # function to load the previous song
 def load_previous_song():
     """Moves a song from `played` stack back to `to_play` and plays it."""
-    global current_song
-    with lock: # lock the thread
-        if played: # check if there are songs in the previous stack
-            if current_song: # check if there is a current song
-                to_play.insert(0, current_song) # move the current song to the next stack
-            current_song = played.pop() # remove the current song from the previous stack
-            last_song_index -= 1 # decrement the last song index
-            write_config()  # apply changes
-            save_state() # save the state
-            return play_song(current_song) # play the current song
-        return "No previous song available."
+    global to_play, played, current_song, last_song_index
+    if played: # check if there are songs in the previous stack
+        if current_song: # check if there is a current song
+            to_play.insert(0, current_song) # move the current song to the next stack
+        current_song = played.pop() # remove the current song from the previous stack
+        last_song_index -= 1 # decrement the last song index
+        write_config()  # apply changes
+        save_state() # save the state
+        return play_song(current_song) # play the current song
+    return "No previous song available."
 
 # function that retrieves all the songs from playlist
 def get_all_songs():
